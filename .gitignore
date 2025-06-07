@@ -34,10 +34,19 @@ ENV/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# OS
+# Model files
+*.joblib
+
+# Data files
+*.csv
+*.xlsx
+
+# Logs
+*.log
+
+# OS specific
 .DS_Store
 Thumbs.db
 
 # Project specific
-*.log
 .env 
