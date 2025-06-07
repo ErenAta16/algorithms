@@ -14,6 +14,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.model_selection import ParameterGrid, GridSearchCV, cross_val_score
 from tqdm import tqdm
 import warnings
+import joblib
 warnings.filterwarnings('ignore')
 
 def silhouette_scorer(estimator, X):
@@ -495,6 +496,22 @@ def performans_raporu_olustur(X, labels, kmeans_model, ward_model, true_labels=N
     
     return rapor
 
+def save_models(kmeans_model, ward_model, scaler, pca):
+    """
+    Eğitilmiş modelleri ve ön işleme bileşenlerini kaydeder
+    """
+    print("\nModeller kaydediliyor...")
+    
+    # Modelleri kaydet
+    joblib.dump(kmeans_model, 'kmeans_model.joblib')
+    joblib.dump(ward_model, 'ward_model.joblib')
+    
+    # Ön işleme bileşenlerini kaydet
+    joblib.dump(scaler, 'scaler.joblib')
+    joblib.dump(pca, 'pca.joblib')
+    
+    print("Modeller ve ön işleme bileşenleri kaydedildi!")
+
 def main():
     # Veri setini oku
     print("Veri seti okunuyor...")
@@ -507,19 +524,23 @@ def main():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
+    # PCA uygula
+    pca = PCA(n_components=0.90)
+    X_pca = pca.fit_transform(X_scaled)
+    
     # Optimal küme sayısını bul
-    optimal_k, metrics_history = find_optimal_clusters(X_scaled)
+    optimal_k, metrics_history = find_optimal_clusters(X_pca)
     
     # Algoritma parametrelerini optimize et
-    kmeans_params = optimize_algorithm_parameters(X_scaled, 'kmeans')
-    ward_params = optimize_algorithm_parameters(X_scaled, 'ward')
+    kmeans_params = optimize_algorithm_parameters(X_pca, 'kmeans')
+    ward_params = optimize_algorithm_parameters(X_pca, 'ward')
     
     # Modelleri eğit
     kmeans = KMeans(**kmeans_params, random_state=42)
     ward = AgglomerativeClustering(**ward_params)
     
-    kmeans_labels = kmeans.fit_predict(X_scaled)
-    ward_labels = ward.fit_predict(X_scaled)
+    kmeans_labels = kmeans.fit_predict(X_pca)
+    ward_labels = ward.fit_predict(X_pca)
     
     labels = {
         'kmeans': kmeans_labels,
@@ -527,11 +548,14 @@ def main():
     }
     
     # Performans raporu oluştur
-    true_labels = None  # Eğer gerçek etiketler varsa buraya ekleyin
-    performans_raporu = performans_raporu_olustur(X_scaled, labels, kmeans, ward, true_labels)
+    true_labels = None
+    performans_raporu = performans_raporu_olustur(X_pca, labels, kmeans, ward, true_labels)
     
     # Sonuçları görselleştir
-    visualize_results(X_scaled, kmeans_labels, ward_labels, optimal_k)
+    visualize_results(X_pca, kmeans_labels, ward_labels, optimal_k)
+    
+    # Modelleri kaydet
+    save_models(kmeans, ward, scaler, pca)
     
     print("\nAnaliz tamamlandı! Sonuçlar kaydedildi.")
 

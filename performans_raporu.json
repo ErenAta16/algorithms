@@ -2,9 +2,9 @@
     "temel_metrikler": {
         "kmeans": {
             "metrics": {
-                "silhouette": 0.5050929365264092,
-                "calinski_harabasz": 304.89736414845385,
-                "davies_bouldin": 0.6710978221344611,
+                "silhouette": 0.5050929364923611,
+                "calinski_harabasz": 304.897364148454,
+                "davies_bouldin": 0.6710978221344609,
                 "homogeneity": 1.0,
                 "completeness": 1.0,
                 "v_measure": 1.0
@@ -18,9 +18,9 @@
         },
         "ward": {
             "metrics": {
-                "silhouette": 0.48564155143492543,
-                "calinski_harabasz": 272.8795699285189,
-                "davies_bouldin": 0.8801692887185595,
+                "silhouette": 0.48564155140257165,
+                "calinski_harabasz": 272.87956992851895,
+                "davies_bouldin": 0.8801692887185597,
                 "homogeneity": 1.0,
                 "completeness": 1.0,
                 "v_measure": 1.0
@@ -35,12 +35,12 @@
     },
     "gelismis_metrikler": {
         "SSE": {
-            "kmeans": 98.44510164249601,
-            "ward": 85.03463670648664
+            "kmeans": 98.44510164249598,
+            "ward": 85.03463670648662
         },
         "Davies_Bouldin": {
-            "kmeans": 0.6710978221344611,
-            "ward": 0.8801692887185595
+            "kmeans": 0.6710978221344609,
+            "ward": 0.8801692887185597
         }
     },
     "kume_boyutlari": {
