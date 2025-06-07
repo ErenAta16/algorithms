@@ -15,7 +15,23 @@ from sklearn.model_selection import ParameterGrid, GridSearchCV, cross_val_score
 from tqdm import tqdm
 import warnings
 import joblib
+import os
 warnings.filterwarnings('ignore')
+
+def create_directories():
+    """
+    Gerekli dizinleri oluşturur
+    """
+    directories = [
+        'visualizations/clustering',
+        'visualizations/metrics',
+        'visualizations/analysis',
+        'models',
+        'reports'
+    ]
+    
+    for directory in directories:
+        os.makedirs(directory, exist_ok=True)
 
 def silhouette_scorer(estimator, X):
     """
@@ -297,7 +313,7 @@ def visualize_metrics(metrics_history, optimal_k):
     plt.ylabel('Skor')
     
     plt.tight_layout()
-    plt.savefig('metrik_optimizasyonu.png')
+    plt.savefig('visualizations/metrics/metrik_optimizasyonu.png')
     plt.close()
 
 def visualize_results(X, kmeans_labels, ward_labels, optimal_k):
@@ -326,7 +342,7 @@ def visualize_results(X, kmeans_labels, ward_labels, optimal_k):
     plt.colorbar(scatter, label='Küme')
     
     plt.tight_layout()
-    plt.savefig('kumeleme_sonuclari.png')
+    plt.savefig('visualizations/clustering/kumeleme_sonuclari.png')
     plt.close()
     
     # Küme boyutları
@@ -349,7 +365,7 @@ def visualize_results(X, kmeans_labels, ward_labels, optimal_k):
     plt.ylabel('Veri Noktası Sayısı')
     
     plt.tight_layout()
-    plt.savefig('kume_boyutlari.png')
+    plt.savefig('visualizations/clustering/kume_boyutlari.png')
     plt.close()
 
 def calculate_sse(X, labels):
@@ -434,7 +450,7 @@ def gelismis_metrik_analizi(X, labels, true_labels=None):
         plt.legend()
     
     plt.tight_layout()
-    plt.savefig('gelismis_metrik_analizi.png')
+    plt.savefig('visualizations/metrics/gelismis_metrik_analizi.png')
     plt.close()
     
     # Metrikleri raporla
@@ -491,7 +507,7 @@ def performans_raporu_olustur(X, labels, kmeans_model, ward_model, true_labels=N
     }
     
     # Raporu JSON dosyasına kaydet
-    with open('performans_raporu.json', 'w', encoding='utf-8') as f:
+    with open('reports/performans_raporu.json', 'w', encoding='utf-8') as f:
         json.dump(rapor, f, ensure_ascii=False, indent=4)
     
     return rapor
@@ -503,16 +519,53 @@ def save_models(kmeans_model, ward_model, scaler, pca):
     print("\nModeller kaydediliyor...")
     
     # Modelleri kaydet
-    joblib.dump(kmeans_model, 'kmeans_model.joblib')
-    joblib.dump(ward_model, 'ward_model.joblib')
+    joblib.dump(kmeans_model, 'models/kmeans_model.joblib')
+    joblib.dump(ward_model, 'models/ward_model.joblib')
     
     # Ön işleme bileşenlerini kaydet
-    joblib.dump(scaler, 'scaler.joblib')
-    joblib.dump(pca, 'pca.joblib')
+    joblib.dump(scaler, 'models/scaler.joblib')
+    joblib.dump(pca, 'models/pca.joblib')
     
     print("Modeller ve ön işleme bileşenleri kaydedildi!")
 
+def visualize_elbow_method(X, max_clusters=10):
+    """
+    Dirsek yöntemi grafiğini oluşturur
+    """
+    print("\nDirsek yöntemi grafiği oluşturuluyor...")
+    
+    # SSE değerlerini hesapla
+    sse = []
+    K = range(1, max_clusters + 1)
+    
+    for k in tqdm(K, desc="Dirsek yöntemi hesaplanıyor"):
+        kmeans = KMeans(
+            n_clusters=k,
+            random_state=42,
+            n_init=200,
+            init='k-means++',
+            max_iter=2000,
+            tol=1e-6
+        )
+        kmeans.fit(X)
+        sse.append(kmeans.inertia_)
+    
+    # Grafiği çiz
+    plt.figure(figsize=(10, 6))
+    plt.plot(K, sse, 'bo-')
+    plt.xlabel('Küme Sayısı (k)')
+    plt.ylabel('SSE')
+    plt.title('Dirsek Yöntemi')
+    plt.grid(True)
+    
+    # Grafiği kaydet
+    plt.savefig('visualizations/metrics/dirsek_yontemi.png')
+    plt.close()
+
 def main():
+    # Dizinleri oluştur
+    create_directories()
+    
     # Veri setini oku
     print("Veri seti okunuyor...")
     df = pd.read_csv('Veri_seti.csv')
@@ -527,6 +580,9 @@ def main():
     # PCA uygula
     pca = PCA(n_components=0.90)
     X_pca = pca.fit_transform(X_scaled)
+    
+    # Dirsek yöntemi grafiğini oluştur
+    visualize_elbow_method(X_pca)
     
     # Optimal küme sayısını bul
     optimal_k, metrics_history = find_optimal_clusters(X_pca)
