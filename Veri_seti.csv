@@ -225,14 +225,7 @@ Lightgbm (Ts features),sl,ts-cl-re-fe-dre-dr-dap-mol,comp3,tre,of4,dl,nd,0.3,GB,
 Lstm,sl,cl-re- ts-dr-dap-dre-fe-se-mol,comp4,nm,of4,dl,nd,1,GB-TB,ft3,p4
 Ma(Moving Average),sl,cl-re-ts-dr-dap-dre-fe-se-mol-so,comp2,li,of2,sl2,nd,0,MB-GB,ft1,p4
 N-beats,sl,re-ts-dr-dap-dre-fe-mol,comp4,nm,of4,dl,nd,1,GB-TB,ft3,p3
-Particle Filter,sl,"cl-re-ip-ts-dr-dap-dre-fe-se-mol
-
-
-
-
-
-
-",comp4,pb,of2,dl,nd,0.3,MB-GB,ft2,p2
+Particle Filter,sl,"cl-re-ip-ts-dr-dap-dre-fe-se-mol",comp4,pb,of2,dl,nd,0.3,MB-GB,ft2,p2
 Prophet (Facebook),sl,cl-re-ts-dr-dap-dre-fe-vis-mol,comp3,pb,of2,dl,nd,0,GB,ft1,p4
 Random Forest (Ts features),sl,fe-cl-dre-dr-mol,comp3,ans,of2,dl,nd,0.3,GB,ft2,p4
 Sarımax,sl, ts-re,comp3,li,of3,dl,nd,0,MB-GB,ft2,p4

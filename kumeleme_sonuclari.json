@@ -1,0 +1,37 @@
+{
+    "kmeans": {
+        "algorithm": "K-means",
+        "metrics": {
+            "silhouette": 0.5219268343671194,
+            "calinski_harabasz": 415.34418663114354,
+            "davies_bouldin": 0.6633122749524343,
+            "homogeneity": 1.0,
+            "completeness": 1.0,
+            "v_measure": 1.0
+        },
+        "interpretations": {
+            "silhouette": "İyi",
+            "calinski_harabasz": "İyi",
+            "davies_bouldin": "İyi"
+        },
+        "recommendations": []
+    },
+    "ward": {
+        "algorithm": "Ward",
+        "metrics": {
+            "silhouette": 0.5018388172184013,
+            "calinski_harabasz": 383.0985031135448,
+            "davies_bouldin": 0.71431463386726,
+            "homogeneity": 1.0,
+            "completeness": 1.0,
+            "v_measure": 1.0
+        },
+        "interpretations": {
+            "silhouette": "İyi",
+            "calinski_harabasz": "İyi",
+            "davies_bouldin": "İyi"
+        },
+        "recommendations": []
+    },
+    "optimal_k": 9
+}
