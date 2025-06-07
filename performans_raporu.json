@@ -1,0 +1,66 @@
+{
+    "temel_metrikler": {
+        "kmeans": {
+            "metrics": {
+                "silhouette": 0.5050929365264092,
+                "calinski_harabasz": 304.89736414845385,
+                "davies_bouldin": 0.6710978221344611,
+                "homogeneity": 1.0,
+                "completeness": 1.0,
+                "v_measure": 1.0
+            },
+            "interpretations": {
+                "silhouette": "İyi",
+                "calinski_harabasz": "İyi",
+                "davies_bouldin": "İyi"
+            },
+            "recommendations": []
+        },
+        "ward": {
+            "metrics": {
+                "silhouette": 0.48564155143492543,
+                "calinski_harabasz": 272.8795699285189,
+                "davies_bouldin": 0.8801692887185595,
+                "homogeneity": 1.0,
+                "completeness": 1.0,
+                "v_measure": 1.0
+            },
+            "interpretations": {
+                "silhouette": "Orta",
+                "calinski_harabasz": "İyi",
+                "davies_bouldin": "İyi"
+            },
+            "recommendations": []
+        }
+    },
+    "gelismis_metrikler": {
+        "SSE": {
+            "kmeans": 98.44510164249601,
+            "ward": 85.03463670648664
+        },
+        "Davies_Bouldin": {
+            "kmeans": 0.6710978221344611,
+            "ward": 0.8801692887185595
+        }
+    },
+    "kume_boyutlari": {
+        "kmeans": [
+            41,
+            54,
+            101,
+            44
+        ],
+        "ward": [
+            102,
+            46,
+            24,
+            51,
+            17
+        ]
+    },
+    "sonuc": {
+        "kmeans_basari": true,
+        "ward_basari": true,
+        "oneri_edilen_model": "K-means"
+    }
+}

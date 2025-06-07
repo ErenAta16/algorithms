@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler, RobustScaler, OneHotEncoder, M
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 from sklearn.metrics import adjusted_rand_score, adjusted_mutual_info_score, homogeneity_score, completeness_score, v_measure_score
+from sklearn.metrics import normalized_mutual_info_score, fowlkes_mallows_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
@@ -350,51 +351,189 @@ def visualize_results(X, kmeans_labels, ward_labels, optimal_k):
     plt.savefig('kume_boyutlari.png')
     plt.close()
 
-def main():
+def calculate_sse(X, labels):
     """
-    Ana fonksiyon
+    Sum of Squared Errors (SSE) hesaplar
     """
-    print("Kümeleme analizi başlatılıyor...")
+    sse = 0
+    for i in range(len(np.unique(labels))):
+        cluster_points = X[labels == i]
+        if len(cluster_points) > 0:
+            centroid = np.mean(cluster_points, axis=0)
+            sse += np.sum((cluster_points - centroid) ** 2)
+    return sse
+
+def gelismis_metrik_analizi(X, labels, true_labels=None):
+    """
+    Gelişmiş metrik analizi yapar
+    """
+    print("\n=== GELİŞMİŞ METRİK ANALİZİ ===")
     
+    metrics = {}
+    
+    # 1. SSE/WCSS Hesaplama
+    metrics['SSE'] = {
+        'kmeans': calculate_sse(X, labels['kmeans']),
+        'ward': calculate_sse(X, labels['ward'])
+    }
+    
+    # 2. Davies-Bouldin İndeksi
+    metrics['Davies_Bouldin'] = {
+        'kmeans': davies_bouldin_score(X, labels['kmeans']),
+        'ward': davies_bouldin_score(X, labels['ward'])
+    }
+    
+    # 3. Etiketli Veri Metrikleri (eğer true_labels varsa)
+    if true_labels is not None:
+        metrics['ARI'] = {
+            'kmeans': adjusted_rand_score(true_labels, labels['kmeans']),
+            'ward': adjusted_rand_score(true_labels, labels['ward'])
+        }
+        
+        metrics['NMI'] = {
+            'kmeans': normalized_mutual_info_score(true_labels, labels['kmeans']),
+            'ward': normalized_mutual_info_score(true_labels, labels['ward'])
+        }
+        
+        metrics['FMI'] = {
+            'kmeans': fowlkes_mallows_score(true_labels, labels['kmeans']),
+            'ward': fowlkes_mallows_score(true_labels, labels['ward'])
+        }
+    
+    # Metrikleri görselleştir
+    plt.figure(figsize=(15, 10))
+    
+    # SSE karşılaştırması
+    plt.subplot(2, 2, 1)
+    plt.bar(['K-means', 'Ward'], [metrics['SSE']['kmeans'], metrics['SSE']['ward']])
+    plt.title('SSE Karşılaştırması')
+    plt.ylabel('SSE Değeri')
+    
+    # Davies-Bouldin karşılaştırması
+    plt.subplot(2, 2, 2)
+    plt.bar(['K-means', 'Ward'], [metrics['Davies_Bouldin']['kmeans'], metrics['Davies_Bouldin']['ward']])
+    plt.title('Davies-Bouldin İndeksi Karşılaştırması')
+    plt.ylabel('Davies-Bouldin Değeri')
+    
+    if true_labels is not None:
+        # ARI karşılaştırması
+        plt.subplot(2, 2, 3)
+        plt.bar(['K-means', 'Ward'], [metrics['ARI']['kmeans'], metrics['ARI']['ward']])
+        plt.title('ARI Karşılaştırması')
+        plt.ylabel('ARI Değeri')
+        
+        # NMI ve FMI karşılaştırması
+        plt.subplot(2, 2, 4)
+        x = np.arange(2)
+        width = 0.35
+        plt.bar(x - width/2, [metrics['NMI']['kmeans'], metrics['NMI']['ward']], width, label='NMI')
+        plt.bar(x + width/2, [metrics['FMI']['kmeans'], metrics['FMI']['ward']], width, label='FMI')
+        plt.title('NMI ve FMI Karşılaştırması')
+        plt.xticks(x, ['K-means', 'Ward'])
+        plt.legend()
+    
+    plt.tight_layout()
+    plt.savefig('gelismis_metrik_analizi.png')
+    plt.close()
+    
+    # Metrikleri raporla
+    print("\nMetrik Sonuçları:")
+    for metric_name, values in metrics.items():
+        print(f"\n{metric_name}:")
+        print(f"K-means: {values['kmeans']:.4f}")
+        print(f"Ward: {values['ward']:.4f}")
+    
+    return metrics
+
+def performans_raporu_olustur(X, labels, kmeans_model, ward_model, true_labels=None):
+    """
+    Kapsamlı performans raporu oluşturur
+    """
+    # 1. Temel metrikler
+    basic_metrics = evaluate_and_report_metrics(X, labels['kmeans'], 'K-means')
+    ward_metrics = evaluate_and_report_metrics(X, labels['ward'], 'Ward')
+    
+    # 2. Gelişmiş metrikler
+    advanced_metrics = gelismis_metrik_analizi(X, labels, true_labels)
+    
+    # 3. Küme boyutları analizi
+    kmeans_sizes = np.bincount(labels['kmeans'])
+    ward_sizes = np.bincount(labels['ward'])
+    
+    # 4. Rapor oluşturma
+    rapor = {
+        'temel_metrikler': {
+            'kmeans': {
+                'metrics': {k: float(v) for k, v in basic_metrics['metrics'].items()},
+                'interpretations': basic_metrics['interpretations'],
+                'recommendations': basic_metrics['recommendations']
+            },
+            'ward': {
+                'metrics': {k: float(v) for k, v in ward_metrics['metrics'].items()},
+                'interpretations': ward_metrics['interpretations'],
+                'recommendations': ward_metrics['recommendations']
+            }
+        },
+        'gelismis_metrikler': {
+            k: {sk: float(sv) for sk, sv in v.items()} 
+            for k, v in advanced_metrics.items()
+        },
+        'kume_boyutlari': {
+            'kmeans': kmeans_sizes.tolist(),
+            'ward': ward_sizes.tolist()
+        },
+        'sonuc': {
+            'kmeans_basari': bool(basic_metrics['metrics']['silhouette'] > 0.3),
+            'ward_basari': bool(ward_metrics['metrics']['silhouette'] > 0.3),
+            'oneri_edilen_model': 'Ward' if ward_metrics['metrics']['silhouette'] > basic_metrics['metrics']['silhouette'] else 'K-means'
+        }
+    }
+    
+    # Raporu JSON dosyasına kaydet
+    with open('performans_raporu.json', 'w', encoding='utf-8') as f:
+        json.dump(rapor, f, ensure_ascii=False, indent=4)
+    
+    return rapor
+
+def main():
     # Veri setini oku
+    print("Veri seti okunuyor...")
     df = pd.read_csv('Veri_seti.csv')
     
     # Veri ön işleme
     X = preprocess_data(df)
     
+    # Veriyi ölçeklendir
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
     # Optimal küme sayısını bul
-    optimal_k, metrics_history = find_optimal_clusters(X)
+    optimal_k, metrics_history = find_optimal_clusters(X_scaled)
     
     # Algoritma parametrelerini optimize et
-    kmeans_params = optimize_algorithm_parameters(X, 'kmeans')
-    ward_params = optimize_algorithm_parameters(X, 'ward')
+    kmeans_params = optimize_algorithm_parameters(X_scaled, 'kmeans')
+    ward_params = optimize_algorithm_parameters(X_scaled, 'ward')
     
-    # K-means kümeleme
+    # Modelleri eğit
     kmeans = KMeans(**kmeans_params, random_state=42)
-    kmeans_labels = kmeans.fit_predict(X)
-    
-    # Ward kümeleme
     ward = AgglomerativeClustering(**ward_params)
-    ward_labels = ward.fit_predict(X)
     
-    # Sonuçları değerlendir
-    kmeans_report = evaluate_and_report_metrics(X, kmeans_labels, 'K-means')
-    ward_report = evaluate_and_report_metrics(X, ward_labels, 'Ward')
+    kmeans_labels = kmeans.fit_predict(X_scaled)
+    ward_labels = ward.fit_predict(X_scaled)
     
-    # Sonuçları görselleştir
-    visualize_results(X, kmeans_labels, ward_labels, optimal_k)
-    
-    # Sonuçları kaydet
-    results = {
-        'kmeans': kmeans_report,
-        'ward': ward_report,
-        'optimal_k': optimal_k
+    labels = {
+        'kmeans': kmeans_labels,
+        'ward': ward_labels
     }
     
-    with open('kumeleme_sonuclari.json', 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=4)
+    # Performans raporu oluştur
+    true_labels = None  # Eğer gerçek etiketler varsa buraya ekleyin
+    performans_raporu = performans_raporu_olustur(X_scaled, labels, kmeans, ward, true_labels)
     
-    print("\nKümeleme analizi tamamlandı!")
+    # Sonuçları görselleştir
+    visualize_results(X_scaled, kmeans_labels, ward_labels, optimal_k)
+    
+    print("\nAnaliz tamamlandı! Sonuçlar kaydedildi.")
 
 if __name__ == "__main__":
     main() 
