@@ -128,31 +128,111 @@ plt.tight_layout()
 plt.savefig('dataset_analysis.png')
 plt.close()
 
-# Korelasyon Analizi için sayısal değerlere dönüştürme
+# Korelasyon analizi için sayısal değerlere dönüştürme fonksiyonları
 def convert_complexity(x):
     return int(x.replace('comp', ''))
 
 def convert_popularity(x):
     return int(x.replace('p', ''))
 
+def convert_data_size(x):
+    size_map = {
+        'mb': 1,
+        'mb-gb': 2,
+        'gb': 3,
+        'gb-tb': 4,
+        'tb': 5
+    }
+    return size_map.get(x.lower().strip(), 0)
+
+def convert_fine_tune(x):
+    if pd.isna(x) or x == '':
+        return 0
+    # ft1: Düşük fine-tune gereksinimi
+    # ft2: Orta fine-tune gereksinimi
+    # ft3: Yüksek fine-tune gereksinimi
+    fine_tune_map = {
+        'ft1': 1,
+        'ft2': 2,
+        'ft3': 3
+    }
+    return fine_tune_map.get(str(x).lower().strip(), 0)
+
 # Sayısal değerlere dönüştürme
 df['Karmaşıklık_Düzeyi_Numeric'] = df['Karmaşıklık Düzeyi'].apply(convert_complexity)
 df['Popülerlik_Numeric'] = df['Popülerlik'].apply(convert_popularity)
+df['Veri_Büyüklüğü_Numeric'] = df['Veri Büyüklüğü '].apply(convert_data_size)
+df['FineTune_Numeric'] = df['FineTune Gereksinimi'].apply(convert_fine_tune)
 
-# Korelasyon analizi
-numeric_columns = ['Karmaşıklık_Düzeyi_Numeric', 'Donanım Gerkesinimleri', 'Popülerlik_Numeric']
+# Eksik değerleri kontrol et ve raporla
+print("\n=== FINE-TUNE DEĞERLERİNİN DAĞILIMI ===")
+print(df['FineTune_Numeric'].value_counts().sort_index())
+print("\nFine-Tune değerlerinin orijinal dağılımı:")
+print(df['FineTune Gereksinimi'].value_counts())
+
+# Korelasyon analizi için sayısal sütunları seç
+numeric_columns = [
+    'Karmaşıklık_Düzeyi_Numeric',
+    'Donanım Gerkesinimleri',
+    'Popülerlik_Numeric',
+    'Veri_Büyüklüğü_Numeric',
+    'FineTune_Numeric'
+]
+
+# Korelasyon matrisini hesapla
 correlation = df[numeric_columns].corr()
-print("\n=== KORELASYON ANALİZİ ===")
+
+# Sütun isimlerini daha anlaşılır hale getir
+column_names = {
+    'Karmaşıklık_Düzeyi_Numeric': 'Karmaşıklık',
+    'Donanım Gerkesinimleri': 'Donanım',
+    'Popülerlik_Numeric': 'Popülerlik',
+    'Veri_Büyüklüğü_Numeric': 'Veri Büyüklüğü',
+    'FineTune_Numeric': 'Fine-Tune'
+}
+correlation.columns = [column_names[col] for col in correlation.columns]
+correlation.index = [column_names[col] for col in correlation.index]
+
+# Korelasyon ısı haritası
+plt.figure(figsize=(12, 10))
+sns.heatmap(correlation, 
+            annot=True, 
+            cmap='coolwarm', 
+            center=0,
+            fmt='.2f',
+            square=True,
+            linewidths=.5,
+            cbar_kws={"shrink": .8},
+            vmin=-1, vmax=1)
+
+plt.title('Algoritma Özellikleri Korelasyon Haritası', pad=20, fontsize=14)
+plt.tight_layout()
+plt.savefig('correlation_heatmap.png', dpi=300, bbox_inches='tight')
+plt.close()
+
+# Korelasyon analizi sonuçlarını yazdır
+print("\n=== KORELASYON ANALİZİ SONUÇLARI ===")
 print("\nKorelasyon Matrisi:")
 print(correlation)
 
-# Korelasyon ısı haritası
-plt.figure(figsize=(10, 8))
-sns.heatmap(correlation, annot=True, cmap='coolwarm', center=0)
-plt.title('Korelasyon Isı Haritası')
-plt.tight_layout()
-plt.savefig('correlation_heatmap.png')
-plt.close()
+# Güçlü korelasyonları bul (|r| > 0.5)
+strong_correlations = []
+for i in range(len(correlation.columns)):
+    for j in range(i+1, len(correlation.columns)):
+        corr_value = correlation.iloc[i, j]
+        if abs(corr_value) > 0.5:
+            strong_correlations.append({
+                'Değişken 1': correlation.columns[i],
+                'Değişken 2': correlation.columns[j],
+                'Korelasyon': corr_value
+            })
+
+if strong_correlations:
+    print("\nGüçlü Korelasyonlar (|r| > 0.5):")
+    for corr in strong_correlations:
+        print(f"{corr['Değişken 1']} - {corr['Değişken 2']}: {corr['Korelasyon']:.2f}")
+else:
+    print("\nGüçlü korelasyon bulunamadı (|r| > 0.5)")
 
 # En Popüler Algoritmalar
 print("\n=== EN POPÜLER ALGORİTMALAR ===")
