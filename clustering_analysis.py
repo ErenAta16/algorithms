@@ -18,6 +18,87 @@ import joblib
 import os
 warnings.filterwarnings('ignore')
 
+def explain_metrics(metrics, algorithm_name):
+    """
+    Kümeleme metriklerini detaylı olarak açıklar
+    """
+    print(f"\n=== {algorithm_name} ALGORİTMASI METRİK AÇIKLAMALARI ===")
+    
+    # Silhouette Skoru Açıklaması
+    print("\n1. Silhouette Skoru:")
+    print(f"Değer: {metrics['silhouette']:.4f}")
+    print("Açıklama:")
+    print("- Küme içi ve küme arası mesafeleri karşılaştırır")
+    print("- SSW (Küme içi kareler toplamı) ve SSB (Küme arası kareler toplamı) kullanır")
+    print("- -1 ile 1 arasında değer alır")
+    print("- Yüksek değerler iyi kümeleme gösterir")
+    print(f"Yorum: {metrics['silhouette']:.4f} değeri, kümelerin {'iyi' if metrics['silhouette'] > 0.5 else 'orta' if metrics['silhouette'] > 0.2 else 'zayıf'} ayrıştığını gösterir")
+    
+    # Calinski-Harabasz Skoru Açıklaması
+    print("\n2. Calinski-Harabasz Skoru:")
+    print(f"Değer: {metrics['calinski_harabasz']:.4f}")
+    print("Açıklama:")
+    print("- SSB/SSW oranını kullanır")
+    print("- Küme arası varyasyonun küme içi varyasyona oranını gösterir")
+    print("- Yüksek değerler iyi kümeleme gösterir")
+    print(f"Yorum: {metrics['calinski_harabasz']:.4f} değeri, kümelerin {'iyi' if metrics['calinski_harabasz'] > 100 else 'orta' if metrics['calinski_harabasz'] > 50 else 'zayıf'} ayrıştığını gösterir")
+    
+    # Davies-Bouldin İndeksi Açıklaması
+    print("\n3. Davies-Bouldin İndeksi:")
+    print(f"Değer: {metrics['davies_bouldin']:.4f}")
+    print("Açıklama:")
+    print("- Küme içi ve küme arası mesafelerin oranını kullanır")
+    print("- Düşük değerler iyi kümeleme gösterir")
+    print("- 0'a yakın değerler ideal kümeleme gösterir")
+    print(f"Yorum: {metrics['davies_bouldin']:.4f} değeri, kümelerin {'iyi' if metrics['davies_bouldin'] < 1 else 'orta' if metrics['davies_bouldin'] < 2 else 'zayıf'} ayrıştığını gösterir")
+    
+    # SSE (Sum of Squared Errors) Açıklaması
+    if 'SSE' in metrics:
+        print("\n4. SSE (Sum of Squared Errors):")
+        print(f"Değer: {metrics['SSE']:.4f}")
+        print("Açıklama:")
+        print("- Küme içi kareler toplamı (SSW)")
+        print("- Küçük değerler kompakt kümeleri gösterir")
+        print("- Kümeleme kalitesinin bir göstergesidir")
+        print(f"Yorum: {metrics['SSE']:.4f} değeri, kümelerin {'kompakt' if metrics['SSE'] < 100 else 'orta' if metrics['SSE'] < 200 else 'dağınık'} olduğunu gösterir")
+
+def generate_detailed_metrics_report(metrics, algorithm_name):
+    """
+    Detaylı metrik raporu oluşturur
+    """
+    report = {
+        'algorithm': algorithm_name,
+        'metrics': metrics,
+        'interpretations': {
+            'silhouette': {
+                'value': metrics['silhouette'],
+                'interpretation': 'İyi' if metrics['silhouette'] > 0.5 else 'Orta' if metrics['silhouette'] > 0.2 else 'Zayıf',
+                'explanation': 'Küme içi ve küme arası mesafelerin karşılaştırması'
+            },
+            'calinski_harabasz': {
+                'value': metrics['calinski_harabasz'],
+                'interpretation': 'İyi' if metrics['calinski_harabasz'] > 100 else 'Orta' if metrics['calinski_harabasz'] > 50 else 'Zayıf',
+                'explanation': 'SSB/SSW oranı - Küme arası varyasyonun küme içi varyasyona oranı'
+            },
+            'davies_bouldin': {
+                'value': metrics['davies_bouldin'],
+                'interpretation': 'İyi' if metrics['davies_bouldin'] < 1 else 'Orta' if metrics['davies_bouldin'] < 2 else 'Zayıf',
+                'explanation': 'Küme içi ve küme arası mesafelerin oranı'
+            }
+        },
+        'recommendations': []
+    }
+    
+    # Öneriler oluştur
+    if metrics['silhouette'] < 0.3:
+        report['recommendations'].append("Silhouette skoru düşük: Küme sayısını değiştirmeyi veya farklı bir kümeleme algoritması denemeyi düşünün")
+    if metrics['calinski_harabasz'] < 50:
+        report['recommendations'].append("Calinski-Harabasz skoru düşük: Kümeler arası ayrımı artırmak için özellik seçimini gözden geçirin")
+    if metrics['davies_bouldin'] > 2:
+        report['recommendations'].append("Davies-Bouldin indeksi yüksek: Kümelerin kompaktlığını artırmak için veri ön işlemeyi gözden geçirin")
+    
+    return report
+
 def create_directories():
     """
     Gerekli dizinleri oluşturur
@@ -284,36 +365,51 @@ def print_metrics_report(report):
 
 def visualize_metrics(metrics_history, optimal_k):
     """
-    Metrik geçmişini görselleştirir
+    Metrikleri görselleştirir ve açıklamalar ekler
     """
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(15, 10))
     
     # Silhouette skoru
-    plt.subplot(1, 3, 1)
+    plt.subplot(2, 2, 1)
     plt.plot(range(2, len(metrics_history['silhouette']) + 2), metrics_history['silhouette'], 'bo-')
     plt.axvline(x=optimal_k['silhouette'], color='r', linestyle='--')
-    plt.title('Silhouette Skoru')
+    plt.title('Silhouette Skoru\n(Küme İçi ve Arası Mesafe Oranı)')
     plt.xlabel('Küme Sayısı')
     plt.ylabel('Skor')
+    plt.grid(True)
     
     # Calinski-Harabasz skoru
-    plt.subplot(1, 3, 2)
+    plt.subplot(2, 2, 2)
     plt.plot(range(2, len(metrics_history['calinski_harabasz']) + 2), metrics_history['calinski_harabasz'], 'go-')
     plt.axvline(x=optimal_k['calinski_harabasz'], color='r', linestyle='--')
-    plt.title('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru\n(SSB/SSW Oranı)')
     plt.xlabel('Küme Sayısı')
     plt.ylabel('Skor')
+    plt.grid(True)
     
     # Davies-Bouldin skoru
-    plt.subplot(1, 3, 3)
+    plt.subplot(2, 2, 3)
     plt.plot(range(2, len(metrics_history['davies_bouldin']) + 2), metrics_history['davies_bouldin'], 'ro-')
     plt.axvline(x=optimal_k['davies_bouldin'], color='r', linestyle='--')
-    plt.title('Davies-Bouldin Skoru')
+    plt.title('Davies-Bouldin İndeksi\n(Küme İçi/Arası Mesafe Oranı)')
     plt.xlabel('Küme Sayısı')
     plt.ylabel('Skor')
+    plt.grid(True)
+    
+    # Metrik karşılaştırması
+    plt.subplot(2, 2, 4)
+    k = range(2, len(metrics_history['silhouette']) + 2)
+    plt.plot(k, metrics_history['silhouette'], 'b-', label='Silhouette')
+    plt.plot(k, np.array(metrics_history['calinski_harabasz'])/100, 'g-', label='Calinski-Harabasz/100')
+    plt.plot(k, metrics_history['davies_bouldin'], 'r-', label='Davies-Bouldin')
+    plt.title('Metrik Karşılaştırması\n(Normalize Edilmiş)')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Normalize Skor')
+    plt.legend()
+    plt.grid(True)
     
     plt.tight_layout()
-    plt.savefig('visualizations/metrics/metrik_optimizasyonu.png')
+    plt.savefig('visualizations/metrics/detayli_metrik_analizi.png')
     plt.close()
 
 def visualize_results(X, kmeans_labels, ward_labels, optimal_k):
@@ -603,9 +699,35 @@ def main():
         'ward': ward_labels
     }
     
-    # Performans raporu oluştur
-    true_labels = None
-    performans_raporu = performans_raporu_olustur(X_pca, labels, kmeans, ward, true_labels)
+    # Metrikleri hesapla ve açıkla
+    print("\n=== K-MEANS ALGORİTMASI METRİKLERİ ===")
+    kmeans_metrics = {
+        'silhouette': silhouette_score(X_pca, kmeans_labels),
+        'calinski_harabasz': calinski_harabasz_score(X_pca, kmeans_labels),
+        'davies_bouldin': davies_bouldin_score(X_pca, kmeans_labels),
+        'SSE': calculate_sse(X_pca, kmeans_labels)
+    }
+    explain_metrics(kmeans_metrics, 'K-means')
+    
+    print("\n=== WARD ALGORİTMASI METRİKLERİ ===")
+    ward_metrics = {
+        'silhouette': silhouette_score(X_pca, ward_labels),
+        'calinski_harabasz': calinski_harabasz_score(X_pca, ward_labels),
+        'davies_bouldin': davies_bouldin_score(X_pca, ward_labels),
+        'SSE': calculate_sse(X_pca, ward_labels)
+    }
+    explain_metrics(ward_metrics, 'Ward')
+    
+    # Detaylı metrik raporları oluştur
+    kmeans_report = generate_detailed_metrics_report(kmeans_metrics, 'K-means')
+    ward_report = generate_detailed_metrics_report(ward_metrics, 'Ward')
+    
+    # Raporları JSON dosyalarına kaydet
+    with open('reports/kmeans_metrik_raporu.json', 'w', encoding='utf-8') as f:
+        json.dump(kmeans_report, f, ensure_ascii=False, indent=4)
+    
+    with open('reports/ward_metrik_raporu.json', 'w', encoding='utf-8') as f:
+        json.dump(ward_report, f, ensure_ascii=False, indent=4)
     
     # Sonuçları görselleştir
     visualize_results(X_pca, kmeans_labels, ward_labels, optimal_k)
