@@ -88,7 +88,7 @@ if page == "Genel Bakış":
     with col2:
         st.subheader("📊 Veri Seti Özellikleri")
         metrics = {
-            "Toplam Algoritma Sayısı": "100+",
+            "Toplam Algoritma Sayısı": "300+",
             "Özellik Sayısı": "12",
             "Küme Sayısı": "4-5",
             "Analiz Türü": "Denetimsiz Öğrenme"
