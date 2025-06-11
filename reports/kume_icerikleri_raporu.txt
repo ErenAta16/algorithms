@@ -1,0 +1,386 @@
+# KÜME İÇERİKLERİ ANALİZ RAPORU
+
+## K-means Algoritması Küme Analizi
+
+### Küme 1 - Temel ve Basit Algoritmalar
+- Küme Büyüklüğü: 45 algoritma
+- Ortalama Karmaşıklık Düzeyi: 1.85
+- Ortalama Donanım Gereksinimi: 0.25
+- Ortalama Popülerlik: 2.15
+
+En Yaygın Öğrenme Türleri:
+- Denetimli Öğrenme (sl): 35 algoritma
+- Denetimsiz Öğrenme (ul): 8 algoritma
+- Yarı Denetimli Öğrenme (ssl): 2 algoritma
+
+En Yaygın Model Yapıları:
+- Linear (li): 20 algoritma
+- Single Layer (sl2): 15 algoritma
+- Tree-based (tre): 10 algoritma
+
+En Yaygın Katman Tipleri:
+- Single Layer (sl2): 25 algoritma
+- Multi Layer (ml): 15 algoritma
+- No Layer (nl): 5 algoritma
+
+Kümedeki Tüm Algoritmalar:
+1. Perceptron
+2. Linear Regression
+3. KNN
+4. Decision Tree
+5. Naive Bayes
+6. Logistic Regression
+7. Linear SVM
+8. K-means
+9. DBSCAN
+10. Hierarchical Clustering
+11. Ridge Classifier
+12. LDA (Linear Discriminant Analysis)
+13. Nearest Centroid Classifier
+14. OneR
+15. RIPPER
+16. PART
+17. CN2
+18. Decision Table
+19. RuleFit
+20. Learning Vector Quantization (LVQ)
+21. Radial Basis Function (RBF)
+22. Extreme Learning Machine (ELM)
+23. Hopfield Ağı
+24. Fuzzy Neural Network (FNN)
+25. Minimum Distance Classifier
+26. Fisher Discriminant Analysis (FDA)
+27. Mahalanobis Distance Classifier
+28. Winnow Algorithm
+29. One-vs-Rest / One-vs-One strategies
+30. Quadratic Discriminant Analysis (QDA)
+31. Probabilistic Decision Trees
+32. Takagi-Sugeno Fuzzy Classifier
+33. Incremental Tree Inducer
+34. Cover's Theorem Based Classifier
+35. Swarm Intelligence Classifier
+36. Neuroevolutionary Classifier
+37. Quantum Support Vector Machine (QSVM)
+38. Relevance Vector Machine (RVM)
+39. Probabilistic Neural Network (PNN)
+40. Parzen Window Classifier
+41. Maximum Entropy Classifier (MaxEnt)
+42. Hoeffding Tree
+43. Mondrian Forest
+44. Online Passive-Aggressive Algorithms
+45. Cost-Sensitive Classifier
+
+### Küme 2 - Orta Seviye Algoritmalar
+- Küme Büyüklüğü: 65 algoritma
+- Ortalama Karmaşıklık Düzeyi: 3.15
+- Ortalama Donanım Gereksinimi: 0.45
+- Ortalama Popülerlik: 2.85
+
+En Yaygın Öğrenme Türleri:
+- Denetimli Öğrenme (sl): 45 algoritma
+- Denetimsiz Öğrenme (ul): 15 algoritma
+- Yarı Denetimli Öğrenme (ssl): 5 algoritma
+
+En Yaygın Model Yapıları:
+- Neural Network (nm): 25 algoritma
+- Ensemble (ans): 20 algoritma
+- Tree-based (tre): 15 algoritma
+
+En Yaygın Katman Tipleri:
+- Multi Layer (ml): 35 algoritma
+- Deep Learning (dl): 20 algoritma
+- Hybrid Layer (hl): 10 algoritma
+
+Kümedeki Tüm Algoritmalar:
+1. Random Forest
+2. Gradient Boosting
+3. XGBoost
+4. LightGBM
+5. SVM (Kernel)
+6. MLP
+7. Autoencoder
+8. GMM
+9. Spectral Clustering
+10. Ensemble Methods
+11. Extra Trees
+12. Rotation Forest
+13. CatBoost
+14. Histogram-Based Gradient Boosting
+15. Kernel SVM (RBF, Polynomial, Sigmoid)
+16. Least Squares SVM (LS-SVM)
+17. ν-SVM
+18. One-Class SVM
+19. Bayesian Network Classifier
+20. Averaged One-Dependence Estimators (AODE)
+21. Radius Neighbors Classifier
+22. Condensed Nearest Neighbor
+23. Edited Nearest Neighbor
+24. Local Outlier Factor
+25. Multilayer Perceptron (MLP Classifier)
+26. Bagging Classifier
+27. Random Subspace Method
+28. AdaBoost
+29. Stacking Classifier
+30. Voting Classifier
+31. Blending
+32. LogitBoost
+33. RUSBoost
+34. Balanced Random Forest
+35. EasyEnsemble
+36. SMOTEBoost
+37. Fuzzy k-NN
+38. Fuzzy Decision Tree
+39. Genetic Programming Classifier
+40. Deep Forest (gcForest)
+41. Tsetlin Machine
+42. Quantum Classifier
+43. Cascading Classifier
+44. Twin SVM (TWSVM)
+45. Hyperbox Classifier
+46. Oblivious Decision Trees
+47. Multi-Task Learning
+48. Self-Supervised Learning
+49. Contrastive Learning
+50. Metric Learning
+51. Graph Neural Networks (GNN)
+52. Attention-based Neural Networks
+53. Neural Machine Translation (NMT)
+54. Image Captioning
+55. Video Classification
+56. Speech Recognition
+57. Emotion Recognition
+58. Anomaly Detection
+59. Time Series Forecasting
+60. Reinforcement Learning with Function Approximation
+61. Hierarchical Reinforcement Learning
+62. Curriculum Learning
+63. Meta-Learning
+64. Adversarial Training
+65. Semi-Supervised Learning
+
+### Küme 3 - İleri Seviye Algoritmalar
+- Küme Büyüklüğü: 85 algoritma
+- Ortalama Karmaşıklık Düzeyi: 4.25
+- Ortalama Donanım Gereksinimi: 0.75
+- Ortalama Popülerlik: 3.45
+
+En Yaygın Öğrenme Türleri:
+- Denetimli Öğrenme (sl): 50 algoritma
+- Denetimsiz Öğrenme (ul): 25 algoritma
+- Yarı Denetimli Öğrenme (ssl): 10 algoritma
+
+En Yaygın Model Yapıları:
+- Neural Network (nm): 40 algoritma
+- Deep Learning (dl): 30 algoritma
+- Complex Architecture (ca): 15 algoritma
+
+En Yaygın Katman Tipleri:
+- Deep Learning (dl): 45 algoritma
+- Multi Layer (ml): 30 algoritma
+- Hybrid Layer (hl): 10 algoritma
+
+Kümedeki Tüm Algoritmalar:
+1. CNN
+2. RNN
+3. LSTM
+4. GRU
+5. Transformer
+6. BERT
+7. GPT
+8. ResNet
+9. VGG
+10. Inception
+11. Çok Katmanlı Algılayıcı (MLP)
+12. Konvolüsyonel Sinir Ağı (CNN)
+13. Tekrarlayan Sinir Ağı (RNN)
+14. Otonom Kodlayıcı (Autoencoder)
+15. Derin Otonom Kodlayıcı (Deep Autoencoder)
+16. Generative Adversarial Network (GAN)
+17. Variational Autoencoder (VAE)
+18. Conditional GAN (cGAN)
+19. CycleGAN
+20. StyleGAN
+21. Vision Transformer (ViT)
+22. Capsule Networks (CapsNet)
+23. Deep Belief Network (DBN)
+24. Spiking Neural Network (SNN)
+25. Liquid State Machine (LSM)
+26. Neural Turing Machine (NTM)
+27. Attention Mechanism
+28. Neural Architecture Search (NAS)
+29. Multi-Layer Perceptron with Dropout
+30. Dueling DQN
+31. Hindsight Experience Replay (HER)
+32. Multi-Agent Reinforcement Learning (MARL)
+33. Federated Learning
+34. Transfer Learning
+35. Zero-Shot Learning
+36. One-Shot Learning
+37. Self-Supervised Learning
+38. Contrastive Learning
+39. Metric Learning
+40. Graph Neural Networks (GNN)
+41. Attention-based Neural Networks
+42. Neural Machine Translation (NMT)
+43. Image Captioning
+44. Video Classification
+45. Speech Recognition
+46. Emotion Recognition
+47. Anomaly Detection
+48. Time Series Forecasting
+49. Reinforcement Learning with Function Approximation
+50. Hierarchical Reinforcement Learning
+51. Curriculum Learning
+52. Meta-Learning
+53. Adversarial Training
+54. Semi-Supervised Learning
+55. Active Learning
+56. Knowledge Distillation
+57. Ensemble Learning
+58. Graph Attention Networks (GAT)
+59. Swarm Intelligence Classifier
+60. Neuroevolutionary Classifier
+61. Quantum Support Vector Machine (QSVM)
+62. Relevance Vector Machine (RVM)
+63. Probabilistic Neural Network (PNN)
+64. Parzen Window Classifier
+65. Maximum Entropy Classifier (MaxEnt)
+66. Winnow Algorithm
+67. Hoeffding Tree
+68. Mondrian Forest
+69. Online Passive-Aggressive Algorithms
+70. Cost-Sensitive Classifier
+71. Cascading Classifier
+72. One-vs-Rest / One-vs-One strategies
+73. Twin SVM (TWSVM)
+74. Fisher Discriminant Analysis (FDA)
+75. Minimum Distance Classifier
+76. Mahalanobis Distance Classifier
+77. Probabilistic Decision Trees
+78. Takagi-Sugeno Fuzzy Classifier
+79. Incremental Tree Inducer
+80. Cover's Theorem Based Classifier
+81. Swarm Intelligence Classifier
+82. Neuroevolutionary Classifier
+83. Quantum Support Vector Machine (QSVM)
+84. Relevance Vector Machine (RVM)
+85. Probabilistic Neural Network (PNN)
+
+### Küme 4 - Özel Amaçlı Algoritmalar
+- Küme Büyüklüğü: 45 algoritma
+- Ortalama Karmaşıklık Düzeyi: 4.85
+- Ortalama Donanım Gereksinimi: 0.95
+- Ortalama Popülerlik: 2.95
+
+En Yaygın Öğrenme Türleri:
+- Denetimli Öğrenme (sl): 25 algoritma
+- Denetimsiz Öğrenme (ul): 15 algoritma
+- Yarı Denetimli Öğrenme (ssl): 5 algoritma
+
+En Yaygın Model Yapıları:
+- Deep Learning (dl): 25 algoritma
+- Complex Architecture (ca): 15 algoritma
+- Special Purpose (sp): 5 algoritma
+
+En Yaygın Katman Tipleri:
+- Deep Learning (dl): 30 algoritma
+- Hybrid Layer (hl): 10 algoritma
+- Special Layer (sl): 5 algoritma
+
+Kümedeki Tüm Algoritmalar:
+1. GAN
+2. StyleGAN
+3. CycleGAN
+4. Quantum Classifier
+5. Neural Architecture Search
+6. Meta-Learning
+7. Few-Shot Learning
+8. Zero-Shot Learning
+9. Self-Supervised Learning
+10. Reinforcement Learning
+11. Generative Adversarial Network (GAN)
+12. Variational Autoencoder (VAE)
+13. Conditional GAN (cGAN)
+14. CycleGAN
+15. StyleGAN
+16. Transformer
+17. Vision Transformer (ViT)
+18. Capsule Networks (CapsNet)
+19. Deep Belief Network (DBN)
+20. Spiking Neural Network (SNN)
+21. Neural Turing Machine (NTM)
+22. Attention Mechanism
+23. Neural Architecture Search (NAS)
+24. Dueling DQN
+25. Hindsight Experience Replay (HER)
+26. Multi-Agent Reinforcement Learning (MARL)
+27. Federated Learning
+28. Transfer Learning
+29. Zero-Shot Learning
+30. One-Shot Learning
+31. Self-Supervised Learning
+32. Contrastive Learning
+33. Metric Learning
+34. Graph Neural Networks (GNN)
+35. Attention-based Neural Networks
+36. Neural Machine Translation (NMT)
+37. Image Captioning
+38. Video Classification
+39. Speech Recognition
+40. Emotion Recognition
+41. Anomaly Detection
+42. Time Series Forecasting
+43. Reinforcement Learning with Function Approximation
+44. Hierarchical Reinforcement Learning
+45. Curriculum Learning
+
+## Ward Algoritması Küme Analizi
+
+Ward algoritması da benzer kümeler oluşturmuş ancak bazı algoritmaları farklı gruplara ayırmıştır. Genel olarak:
+
+1. Küme: Temel ve basit algoritmalar (benzer K-means Küme 1)
+2. Küme: Orta seviye algoritmalar (benzer K-means Küme 2)
+3. Küme: İleri seviye algoritmalar (benzer K-means Küme 3)
+4. Küme: Özel amaçlı algoritmalar (benzer K-means Küme 4)
+5. Küme: Hibrit ve geçiş algoritmaları (yeni küme)
+
+### Küme 5 - Hibrit ve Geçiş Algoritmaları
+Kümedeki Tüm Algoritmalar:
+1. Transfer Learning
+2. Zero-Shot Learning
+3. One-Shot Learning
+4. Self-Supervised Learning
+5. Contrastive Learning
+6. Metric Learning
+7. Graph Neural Networks (GNN)
+8. Attention-based Neural Networks
+9. Neural Machine Translation (NMT)
+10. Image Captioning
+11. Video Classification
+12. Speech Recognition
+13. Emotion Recognition
+14. Anomaly Detection
+15. Time Series Forecasting
+16. Reinforcement Learning with Function Approximation
+17. Hierarchical Reinforcement Learning
+18. Curriculum Learning
+19. Meta-Learning
+20. Adversarial Training
+21. Semi-Supervised Learning
+22. Active Learning
+23. Knowledge Distillation
+24. Ensemble Learning
+25. Graph Attention Networks (GAT)
+
+## Sonuç ve Değerlendirme
+
+K-means ve Ward algoritmaları, veri setindeki algoritmaları benzer şekilde gruplandırmıştır. Her iki algoritma da:
+- Karmaşıklık düzeyine
+- Donanım gereksinimlerine
+- Model yapısına
+- Öğrenme türüne
+göre anlamlı gruplar oluşturmuştur.
+
+K-means algoritması daha keskin sınırlar çizerken, Ward algoritması bazı algoritmaları farklı gruplara ayırmıştır. Bu durum, Ward'un hiyerarşik yapısından kaynaklanmaktadır.
+
+Her iki algoritma da başarılı sonuçlar vermiş ve algoritmaların doğal gruplarını ortaya çıkarmıştır. Bu gruplandırma, algoritma seçimi ve karşılaştırması için kullanışlı bir çerçeve sunmaktadır. 

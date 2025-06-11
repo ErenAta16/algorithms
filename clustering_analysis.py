@@ -658,6 +658,55 @@ def visualize_elbow_method(X, max_clusters=10):
     plt.savefig('visualizations/metrics/dirsek_yontemi.png')
     plt.close()
 
+def analyze_cluster_contents(df, labels, algorithm_name):
+    """
+    Her kümenin içeriğini detaylı olarak analiz eder ve raporlar
+    """
+    print(f"\n=== {algorithm_name} ALGORİTMASI KÜME İÇERİKLERİ ===")
+    
+    # Her küme için analiz yap
+    for cluster_id in range(max(labels) + 1):
+        # Kümedeki algoritmaları al
+        cluster_algorithms = df[labels == cluster_id]['Algoritma Adı'].tolist()
+        
+        # Küme özelliklerini analiz et
+        cluster_data = df[labels == cluster_id]
+        
+        # Ortalama değerleri hesapla
+        avg_complexity = cluster_data['Karmaşıklık Düzeyi'].mean()
+        avg_hardware = cluster_data['Donanım Gerkesinimleri'].mean()
+        avg_popularity = cluster_data['Popülerlik'].mean()
+        
+        # En yaygın özellikleri bul
+        learning_types = cluster_data['Öğrenme Türü'].value_counts().head(3)
+        model_structures = cluster_data['Model Yapısı'].value_counts().head(3)
+        layer_types = cluster_data['Katman Tipi'].value_counts().head(3)
+        
+        print(f"\nKüme {cluster_id + 1} Analizi:")
+        print("-" * 50)
+        print(f"Küme Büyüklüğü: {len(cluster_algorithms)} algoritma")
+        print("\nKüme Özellikleri:")
+        print(f"Ortalama Karmaşıklık Düzeyi: {avg_complexity:.2f}")
+        print(f"Ortalama Donanım Gereksinimi: {avg_hardware:.2f}")
+        print(f"Ortalama Popülerlik: {avg_popularity:.2f}")
+        
+        print("\nEn Yaygın Öğrenme Türleri:")
+        for lt, count in learning_types.items():
+            print(f"- {lt}: {count} algoritma")
+            
+        print("\nEn Yaygın Model Yapıları:")
+        for ms, count in model_structures.items():
+            print(f"- {ms}: {count} algoritma")
+            
+        print("\nEn Yaygın Katman Tipleri:")
+        for lt, count in layer_types.items():
+            print(f"- {lt}: {count} algoritma")
+            
+        print("\nKümedeki Algoritmalar:")
+        for i, algo in enumerate(cluster_algorithms, 1):
+            print(f"{i}. {algo}")
+        print("-" * 50)
+
 def main():
     # Dizinleri oluştur
     create_directories()
@@ -731,6 +780,10 @@ def main():
     
     # Sonuçları görselleştir
     visualize_results(X_pca, kmeans_labels, ward_labels, optimal_k)
+    
+    # Küme içeriklerini analiz et
+    analyze_cluster_contents(df, kmeans_labels, "K-means")
+    analyze_cluster_contents(df, ward_labels, "Ward")
     
     # Modelleri kaydet
     save_models(kmeans, ward, scaler, pca)
