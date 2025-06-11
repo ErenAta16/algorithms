@@ -121,141 +121,198 @@ def silhouette_scorer(estimator, X):
     labels = estimator.fit_predict(X)
     return silhouette_score(X, labels)
 
-def preprocess_data(df):
+def preprocess_categorical_features(df):
     """
-    Veri ön işleme adımlarını uygular
+    Kategorik özellikleri ön işleme ve ağırlıklandırma
     """
-    print("\nVeri ön işleme başlatılıyor...")
+    # Kategorik sütunları seç
+    categorical_cols = [
+        'Öğrenme Türü', 'Model Yapısı', 'Aşırı Öğrenme Eğilimi',
+        'Katman Tipi', 'Veri Tipi', 'FineTune Gereksinimi'
+    ]
     
-    # Kategorik değişkenleri işle
-    def process_categorical_features(df):
-        print("Kategorik özellikler işleniyor...")
-        categorical_columns = ['Öğrenme Türü', 'Model Yapısı', 'Katman Tipi', 'Veri Tipi']
-        
-        # Label encoding uygula
-        for col in categorical_columns:
-            df[col] = df[col].astype('category').cat.codes
-        
-        return df
+    # Her kategorik sütun için one-hot encoding uygula
+    categorical_features = pd.get_dummies(df[categorical_cols], prefix=categorical_cols)
     
-    # Sayısal değişkenleri işle
-    def process_numeric_features(df):
-        print("Sayısal özellikler işleniyor...")
-        numeric_columns = ['Karmaşıklık Düzeyi', 'Popülerlik', 'Donanım Gerkesinimleri']
+    # Kategorik özellikler için ağırlıklar - En iyi sonuç veren ağırlıklar
+    categorical_weights = {
+        'Öğrenme Türü': 3.5,           # En iyi sonuç veren değer
+        'Model Yapısı': 3.0,           # En iyi sonuç veren değer
+        'Aşırı Öğrenme Eğilimi': 2.5,  # En iyi sonuç veren değer
+        'Katman Tipi': 2.0,            # En iyi sonuç veren değer
+        'Veri Tipi': 3.2,              # En iyi sonuç veren değer
+        'FineTune Gereksinimi': 2.0    # En iyi sonuç veren değer
+    }
+    
+    # Ağırlıklandırma uygula
+    for col in categorical_cols:
+        # Sütun adına göre ilgili one-hot encoding sütunlarını bul
+        col_prefix = f"{col}_"
+        matching_cols = [c for c in categorical_features.columns if c.startswith(col_prefix)]
         
-        # Karmaşıklık düzeyini sayısal değere dönüştür
-        df['Karmaşıklık Düzeyi'] = df['Karmaşıklık Düzeyi'].str.replace('comp', '').astype(int)
-        
-        # Popülerliği sayısal değere dönüştür
-        df['Popülerlik'] = df['Popülerlik'].str.replace('p', '').astype(int)
-        
-        # Donanım gereksinimlerini sayısal değere dönüştür
-        def convert_hardware(x):
-            if '-' in str(x):
+        # Bu sütunlara ağırlık uygula
+        for matching_col in matching_cols:
+            categorical_features[matching_col] = categorical_features[matching_col] * categorical_weights[col]
+    
+    return categorical_features
+
+def preprocess_numerical_features(df):
+    """
+    Sayısal özellikleri ön işleme ve ağırlıklandırma
+    """
+    # Yeni bir DataFrame oluştur
+    numerical_df = df.copy()
+    
+    # Karmaşıklık düzeyini sayısal değere dönüştür
+    numerical_df['Karmaşıklık Düzeyi'] = numerical_df['Karmaşıklık Düzeyi'].str.replace('comp', '').astype(int)
+    
+    # Popülerliği sayısal değere dönüştür
+    numerical_df['Popülerlik'] = numerical_df['Popülerlik'].str.replace('p', '').astype(int)
+    
+    # Donanım gereksinimlerini sayısal değere dönüştür
+    def convert_hardware(x):
+        if isinstance(x, str):
+            if '-' in x:
                 start, end = map(float, x.split('-'))
                 return (start + end) / 2
             return float(x)
-        
-        df['Donanım Gerkesinimleri'] = df['Donanım Gerkesinimleri'].apply(convert_hardware)
-        
-        # Robust Scaler uygula (aykırı değerlere karşı daha dayanıklı)
-        scaler = RobustScaler()
-        df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
-        
-        return df
+        return x
     
-    # Kullanım alanlarını işle
-    def process_usage_areas(df):
-        print("Kullanım alanları işleniyor...")
-        # Kullanım alanlarını binary encoding ile dönüştür
-        usage_areas = df['Kullanım Alanı'].str.get_dummies(sep='-')
-        # Sadece en sık kullanılan 3 alanı seç (daha az gürültü)
-        top_areas = usage_areas.sum().nlargest(3).index
-        usage_areas = usage_areas[top_areas]
-        df = pd.concat([df, usage_areas], axis=1)
-        df = df.drop('Kullanım Alanı', axis=1)
-        return df
+    numerical_df['Donanım Gerkesinimleri'] = numerical_df['Donanım Gerkesinimleri'].apply(convert_hardware)
     
-    # Özellik seçimi
-    def select_features(df):
-        print("Özellik seçimi yapılıyor...")
-        # Sadece sayısal sütunları seç
-        numeric_df = df.select_dtypes(include=[np.number])
-        
-        # Korelasyon matrisini hesapla
-        corr_matrix = numeric_df.corr().abs()
-        
-        # Yüksek korelasyonlu özellikleri kaldır (daha sıkı eşik)
-        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-        to_drop = [column for column in upper.columns if any(upper[column] > 0.85)]
-        
-        # Korelasyonlu özellikleri kaldır
-        numeric_df = numeric_df.drop(to_drop, axis=1)
-        
-        # PCA uygula (varyansın %90'ını koru)
-        pca = PCA(n_components=0.90)
-        pca_result = pca.fit_transform(numeric_df)
-        
-        # PCA sonuçlarını DataFrame'e dönüştür
-        pca_df = pd.DataFrame(pca_result, columns=[f'PC{i+1}' for i in range(pca_result.shape[1])])
-        
-        return pca_df
+    # Veri büyüklüğünü sayısal değere dönüştür
+    def convert_data_size(x):
+        try:
+            if pd.isna(x) or x == '' or x == ' ':
+                return 0.0
+            if isinstance(x, str):
+                # Birimleri kaldır ve sayısal değere dönüştür
+                x = x.strip()
+                if x == 'MB':
+                    return 1.0
+                elif x == 'GB':
+                    return 1024.0  # 1 GB = 1024 MB
+                elif x == 'TB':
+                    return 1024.0 * 1024.0  # 1 TB = 1024 GB = 1024 * 1024 MB
+                elif '-' in x:
+                    # Aralık değerleri için ortalama al
+                    start, end = x.split('-')
+                    start = start.strip()
+                    end = end.strip()
+                    
+                    # Başlangıç değerini dönüştür
+                    if start == 'MB':
+                        start_val = 1.0
+                    elif start == 'GB':
+                        start_val = 1024.0
+                    elif start == 'TB':
+                        start_val = 1024.0 * 1024.0
+                    else:
+                        start_val = float(start)
+                    
+                    # Bitiş değerini dönüştür
+                    if end == 'MB':
+                        end_val = 1.0
+                    elif end == 'GB':
+                        end_val = 1024.0
+                    elif end == 'TB':
+                        end_val = 1024.0 * 1024.0
+                    else:
+                        end_val = float(end)
+                    
+                    return (start_val + end_val) / 2
+                else:
+                    return float(x)
+            return float(x)
+        except Exception as e:
+            print(f"Hata: {x} değeri dönüştürülemedi. Hata: {str(e)}")
+            return 0.0
     
-    # Tüm ön işleme adımlarını uygula
-    df = process_categorical_features(df)
-    df = process_numeric_features(df)
-    df = process_usage_areas(df)
-    df = select_features(df)
+    numerical_df['Veri Büyüklüğü '] = numerical_df['Veri Büyüklüğü '].apply(convert_data_size)
     
-    print("Veri ön işleme tamamlandı!")
-    return df
-
-def find_optimal_clusters(X, max_clusters=10):
-    """
-    Birden fazla metrik kullanarak optimal küme sayısını belirler
-    """
-    print("\nOptimal küme sayısı hesaplanıyor...")
-    metrics = {
-        'silhouette': [],
-        'calinski_harabasz': [],
-        'davies_bouldin': []
+    # Sayısal özellikler için ağırlıklar - En iyi sonuç veren ağırlıklar
+    numerical_weights = {
+        'Karmaşıklık Düzeyi': 4.0,      # En iyi sonuç veren değer
+        'Popülerlik': 3.2,              # En iyi sonuç veren değer
+        'Donanım Gerkesinimleri': 2.5,   # En iyi sonuç veren değer
+        'Veri Büyüklüğü ': 3.0           # En iyi sonuç veren değer
     }
     
-    K = range(2, max_clusters + 1)
+    # Ağırlıklandırma uygula
+    for col, weight in numerical_weights.items():
+        numerical_df[col] = numerical_df[col] * weight
     
-    for k in tqdm(K, desc="Küme sayısı optimizasyonu"):
-        # K-means++ ile başlat ve daha fazla iterasyon kullan
-        kmeans = KMeans(
-            n_clusters=k,
-            random_state=42,
-            n_init=200,  # Daha fazla başlatma
-            init='k-means++',
-            max_iter=2000,  # Daha fazla iterasyon
-            tol=1e-6  # Daha hassas tolerans
-        )
-        labels = kmeans.fit_predict(X)
-        
-        metrics['silhouette'].append(silhouette_score(X, labels))
-        metrics['calinski_harabasz'].append(calinski_harabasz_score(X, labels))
-        metrics['davies_bouldin'].append(davies_bouldin_score(X, labels))
-    
-    # Optimal küme sayısını belirle
-    optimal_k = {
-        'silhouette': K[np.argmax(metrics['silhouette'])],
-        'calinski_harabasz': K[np.argmax(metrics['calinski_harabasz'])],
-        'davies_bouldin': K[np.argmin(metrics['davies_bouldin'])]
-    }
-    
-    # En sık önerilen küme sayısını bul
-    recommended_k = max(set(optimal_k.values()), key=list(optimal_k.values()).count)
-    print(f"\nÖnerilen küme sayısı: {recommended_k}")
-    
-    # Metrikleri görselleştir
-    visualize_metrics(metrics, optimal_k)
-    
-    return recommended_k, metrics
+    numerical_cols = ['Karmaşıklık Düzeyi', 'Popülerlik', 'Donanım Gerkesinimleri', 'Veri Büyüklüğü ']
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(numerical_df[numerical_cols])
+    return pd.DataFrame(scaled_features, columns=numerical_cols)
 
-def optimize_algorithm_parameters(X, algorithm='kmeans'):
+def preprocess_usage_areas(df):
+    """
+    Kullanım alanlarını ön işleme
+    """
+    usage_areas = df['Kullanım Alanı'].str.get_dummies('-')
+    return usage_areas
+
+def select_features(df):
+    """
+    Özellik seçimi ve birleştirme
+    """
+    categorical_features = preprocess_categorical_features(df)
+    numerical_features = preprocess_numerical_features(df)
+    usage_features = preprocess_usage_areas(df)
+    
+    # Tüm özellikleri birleştir
+    features = pd.concat([categorical_features, numerical_features, usage_features], axis=1)
+    return features
+
+def find_optimal_clusters(X, max_clusters=27):
+    """
+    En optimal küme sayısını belirler
+    """
+    silhouette_scores = []
+    calinski_scores = []
+    davies_scores = []
+    sse_scores = []
+    
+    for n_clusters in range(2, max_clusters + 1):
+        # K-means kümeleme
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        kmeans_labels = kmeans.fit_predict(X)
+        
+        # Ward kümeleme
+        ward = AgglomerativeClustering(n_clusters=n_clusters)
+        ward_labels = ward.fit_predict(X)
+        
+        # Metrikleri hesapla
+        silhouette_scores.append({
+            'kmeans': silhouette_score(X, kmeans_labels),
+            'ward': silhouette_score(X, ward_labels)
+        })
+        
+        calinski_scores.append({
+            'kmeans': calinski_harabasz_score(X, kmeans_labels),
+            'ward': calinski_harabasz_score(X, ward_labels)
+        })
+        
+        davies_scores.append({
+            'kmeans': davies_bouldin_score(X, kmeans_labels),
+            'ward': davies_bouldin_score(X, ward_labels)
+        })
+        
+        sse_scores.append({
+            'kmeans': kmeans.inertia_,
+            'ward': np.sum((X - ward.fit(X).labels_.reshape(-1, 1)) ** 2)
+        })
+    
+    return {
+        'silhouette': silhouette_scores,
+        'calinski': calinski_scores,
+        'davies': davies_scores,
+        'sse': sse_scores
+    }
+
+def optimize_algorithm_parameters(X, algorithm='kmeans', optimal_k=4):
     """
     Algoritma parametrelerini optimize eder
     """
@@ -263,18 +320,18 @@ def optimize_algorithm_parameters(X, algorithm='kmeans'):
     
     if algorithm == 'kmeans':
         param_grid = {
-            'n_clusters': [3, 4, 5],
+            'n_clusters': [optimal_k],  # Optimal küme sayısını kullan
             'init': ['k-means++'],
-            'n_init': [200],  # Daha fazla başlatma
-            'max_iter': [2000],  # Daha fazla iterasyon
+            'n_init': [200],
+            'max_iter': [2000],
             'algorithm': ['lloyd'],
-            'tol': [1e-6]  # Daha hassas tolerans
+            'tol': [1e-6]
         }
         model = KMeans(random_state=42)
     elif algorithm == 'ward':
         param_grid = {
-            'n_clusters': [3, 4, 5],
-            'linkage': ['ward', 'complete'],  # Farklı bağlantı yöntemleri
+            'n_clusters': [optimal_k],  # Optimal küme sayısını kullan
+            'linkage': ['ward', 'complete'],
             'compute_full_tree': ['auto']
         }
         model = AgglomerativeClustering()
@@ -608,21 +665,24 @@ def performans_raporu_olustur(X, labels, kmeans_model, ward_model, true_labels=N
     
     return rapor
 
-def save_models(kmeans_model, ward_model, scaler, pca):
+def save_models(kmeans_model, ward_model, scaler, pca, save_dir='models'):
     """
-    Eğitilmiş modelleri ve ön işleme bileşenlerini kaydeder
+    Eğitilmiş modelleri ve dönüştürücüleri kaydeder
     """
-    print("\nModeller kaydediliyor...")
+    # Dizin yoksa oluştur
+    os.makedirs(save_dir, exist_ok=True)
     
     # Modelleri kaydet
-    joblib.dump(kmeans_model, 'models/kmeans_model.joblib')
-    joblib.dump(ward_model, 'models/ward_model.joblib')
+    joblib.dump(kmeans_model, os.path.join(save_dir, 'kmeans_model.joblib'))
+    joblib.dump(ward_model, os.path.join(save_dir, 'ward_model.joblib'))
+    joblib.dump(scaler, os.path.join(save_dir, 'scaler.joblib'))
+    joblib.dump(pca, os.path.join(save_dir, 'pca.joblib'))
     
-    # Ön işleme bileşenlerini kaydet
-    joblib.dump(scaler, 'models/scaler.joblib')
-    joblib.dump(pca, 'models/pca.joblib')
-    
-    print("Modeller ve ön işleme bileşenleri kaydedildi!")
+    print("\nModeller başarıyla kaydedildi:")
+    print(f"- K-means modeli: {os.path.join(save_dir, 'kmeans_model.joblib')}")
+    print(f"- Ward modeli: {os.path.join(save_dir, 'ward_model.joblib')}")
+    print(f"- Scaler: {os.path.join(save_dir, 'scaler.joblib')}")
+    print(f"- PCA: {os.path.join(save_dir, 'pca.joblib')}")
 
 def visualize_elbow_method(X, max_clusters=10):
     """
@@ -707,88 +767,902 @@ def analyze_cluster_contents(df, labels, algorithm_name):
             print(f"{i}. {algo}")
         print("-" * 50)
 
-def main():
-    # Dizinleri oluştur
-    create_directories()
+def visualize_dendrogram(X, max_clusters=27):
+    """
+    Hiyerarşik kümeleme dendrogramını görselleştirir
+    """
+    # Hiyerarşik kümeleme
+    linkage_matrix = linkage(X, method='ward')
     
-    # Veri setini oku
+    # Dendrogram
+    plt.figure(figsize=(20, 15))
+    dendrogram(linkage_matrix,
+               truncate_mode='lastp',
+               p=max_clusters,
+               leaf_rotation=90.,
+               leaf_font_size=12.,
+               show_contracted=True)
+    plt.title('Hiyerarşik Kümeleme Dendrogramı (27 Küme)')
+    plt.xlabel('Örnek İndeksi')
+    plt.ylabel('Uzaklık')
+    plt.grid(True)
+    plt.savefig('visualizations/clustering/dendrogram.png', bbox_inches='tight', dpi=300)
+    plt.close()
+    
+    # 27 küme için renkli görselleştirme
+    ward = AgglomerativeClustering(n_clusters=27)
+    ward_labels = ward.fit_predict(X)
+    
+    plt.figure(figsize=(20, 15))
+    scatter = plt.scatter(X[:, 0], X[:, 1], c=ward_labels, cmap='tab20')
+    plt.colorbar(scatter)
+    plt.title('27 Küme ile Ward Kümeleme Görselleştirmesi')
+    plt.xlabel('Birinci Bileşen')
+    plt.ylabel('İkinci Bileşen')
+    plt.grid(True)
+    plt.savefig('visualizations/clustering/ward_clustering_27.png')
+    plt.close()
+
+def visualize_cluster_metrics(metrics, max_clusters=27):
+    """
+    Kümeleme metriklerini görselleştirir
+    """
+    n_clusters = range(2, max_clusters + 1)
+    
+    # Silhouette skoru
+    plt.figure(figsize=(15, 10))
+    plt.plot(n_clusters, [m['kmeans'] for m in metrics['silhouette']], 'b-', label='K-means')
+    plt.plot(n_clusters, [m['ward'] for m in metrics['silhouette']], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/silhouette_scores.png')
+    plt.close()
+    
+    # Calinski-Harabasz skoru
+    plt.figure(figsize=(15, 10))
+    plt.plot(n_clusters, [m['kmeans'] for m in metrics['calinski']], 'b-', label='K-means')
+    plt.plot(n_clusters, [m['ward'] for m in metrics['calinski']], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/calinski_scores.png')
+    plt.close()
+    
+    # Davies-Bouldin indeksi
+    plt.figure(figsize=(15, 10))
+    plt.plot(n_clusters, [m['kmeans'] for m in metrics['davies']], 'b-', label='K-means')
+    plt.plot(n_clusters, [m['ward'] for m in metrics['davies']], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/davies_scores.png')
+    plt.close()
+    
+    # SSE
+    plt.figure(figsize=(15, 10))
+    plt.plot(n_clusters, [m['kmeans'] for m in metrics['sse']], 'b-', label='K-means')
+    plt.plot(n_clusters, [m['ward'] for m in metrics['sse']], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/sse_scores.png')
+    plt.close()
+
+def analyze_all_cluster_numbers(X, max_clusters=27):
+    """
+    Tüm küme sayıları için performans analizi yapar
+    """
+    print("\nTüm küme sayıları için performans analizi yapılıyor...")
+    results = []
+    
+    for k in tqdm(range(2, max_clusters + 1), desc="Küme sayıları analiz ediliyor"):
+        # K-means kümeleme
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans_labels = kmeans.fit_predict(X)
+        
+        # Ward kümeleme
+        ward = AgglomerativeClustering(n_clusters=k)
+        ward_labels = ward.fit_predict(X)
+        
+        # Metrikleri hesapla
+        kmeans_silhouette = silhouette_score(X, kmeans_labels)
+        ward_silhouette = silhouette_score(X, ward_labels)
+        
+        kmeans_calinski = calinski_harabasz_score(X, kmeans_labels)
+        ward_calinski = calinski_harabasz_score(X, ward_labels)
+        
+        kmeans_davies = davies_bouldin_score(X, kmeans_labels)
+        ward_davies = davies_bouldin_score(X, ward_labels)
+        
+        kmeans_sse = kmeans.inertia_
+        ward_sse = sum(np.sum((X[ward_labels == i] - np.mean(X[ward_labels == i], axis=0)) ** 2) 
+                      for i in range(k))
+        
+        results.append({
+            'k': k,
+            'kmeans_silhouette': kmeans_silhouette,
+            'ward_silhouette': ward_silhouette,
+            'kmeans_calinski': kmeans_calinski,
+            'ward_calinski': ward_calinski,
+            'kmeans_davies': kmeans_davies,
+            'ward_davies': ward_davies,
+            'kmeans_sse': kmeans_sse,
+            'ward_sse': ward_sse
+        })
+    
+    # Sonuçları tablo olarak yazdır
+    print("\nPerformans Analizi Sonuçları:")
+    print("-" * 100)
+    print(f"{'Küme Sayısı':<10} {'K-means Silhouette':<20} {'Ward Silhouette':<20} {'K-means Calinski':<20} {'Ward Calinski':<20}")
+    print("-" * 100)
+    
+    for r in results:
+        print(f"{r['k']:<10} {r['kmeans_silhouette']:<20.4f} {r['ward_silhouette']:<20.4f} {r['kmeans_calinski']:<20.4f} {r['ward_calinski']:<20.4f}")
+    
+    print("\nDavies-Bouldin ve SSE Değerleri:")
+    print("-" * 100)
+    print(f"{'Küme Sayısı':<10} {'K-means Davies':<20} {'Ward Davies':<20} {'K-means SSE':<20} {'Ward SSE':<20}")
+    print("-" * 100)
+    
+    for r in results:
+        print(f"{r['k']:<10} {r['kmeans_davies']:<20.4f} {r['ward_davies']:<20.4f} {r['kmeans_sse']:<20.4f} {r['ward_sse']:<20.4f}")
+    
+    # En iyi performans gösteren küme sayılarını bul
+    best_kmeans_silhouette = max(results, key=lambda x: x['kmeans_silhouette'])
+    best_ward_silhouette = max(results, key=lambda x: x['ward_silhouette'])
+    
+    print("\nEn İyi Performans Gösteren Küme Sayıları:")
+    print(f"K-means (Silhouette): {best_kmeans_silhouette['k']} küme (Skor: {best_kmeans_silhouette['kmeans_silhouette']:.4f})")
+    print(f"Ward (Silhouette): {best_ward_silhouette['k']} küme (Skor: {best_ward_silhouette['ward_silhouette']:.4f})")
+    
+    # Metrikleri görselleştir
+    visualize_metrics(results)
+    
+    return results
+
+def visualize_metrics(results):
+    """
+    Metrikleri görselleştirir
+    """
+    k_values = [r['k'] for r in results]
+    
+    # Silhouette skorları
+    plt.figure(figsize=(15, 10))
+    plt.plot(k_values, [r['kmeans_silhouette'] for r in results], 'b-', label='K-means')
+    plt.plot(k_values, [r['ward_silhouette'] for r in results], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/silhouette_scores.png')
+    plt.close()
+    
+    # Calinski-Harabasz skorları
+    plt.figure(figsize=(15, 10))
+    plt.plot(k_values, [r['kmeans_calinski'] for r in results], 'b-', label='K-means')
+    plt.plot(k_values, [r['ward_calinski'] for r in results], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/calinski_scores.png')
+    plt.close()
+    
+    # Davies-Bouldin indeksleri
+    plt.figure(figsize=(15, 10))
+    plt.plot(k_values, [r['kmeans_davies'] for r in results], 'b-', label='K-means')
+    plt.plot(k_values, [r['ward_davies'] for r in results], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/davies_scores.png')
+    plt.close()
+    
+    # SSE değerleri
+    plt.figure(figsize=(15, 10))
+    plt.plot(k_values, [r['kmeans_sse'] for r in results], 'b-', label='K-means')
+    plt.plot(k_values, [r['ward_sse'] for r in results], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE vs Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/sse_scores.png')
+    plt.close()
+
+def visualize_all_metrics(X, max_clusters=27):
+    """
+    Tüm metrik görselleştirmelerini oluşturur
+    """
+    # 1. Dirsek Yöntemi (Elbow Method)
+    distortions = []
+    K = range(1, max_clusters + 1)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(X)
+        distortions.append(kmeans.inertia_)
+    
+    plt.figure(figsize=(15, 10))
+    plt.plot(K, distortions, 'bx-')
+    plt.xlabel('k')
+    plt.ylabel('Distortion')
+    plt.title('Dirsek Yöntemi (Elbow Method)')
+    plt.grid(True)
+    
+    # 2. Detaylı Metrik Analizi
+    metrics = {
+        'silhouette': [],
+        'calinski': [],
+        'davies': [],
+        'sse': []
+    }
+    
+    for k in range(2, max_clusters + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        labels = kmeans.fit_predict(X)
+        
+        metrics['silhouette'].append(silhouette_score(X, labels))
+        metrics['calinski'].append(calinski_harabasz_score(X, labels))
+        metrics['davies'].append(davies_bouldin_score(X, labels))
+        metrics['sse'].append(kmeans.inertia_)
+    
+    plt.figure(figsize=(20, 15))
+    
+    # Silhouette
+    plt.subplot(2, 2, 1)
+    plt.plot(range(2, max_clusters + 1), metrics['silhouette'], 'bo-')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru Analizi')
+    plt.grid(True)
+    
+    # Calinski-Harabasz
+    plt.subplot(2, 2, 2)
+    plt.plot(range(2, max_clusters + 1), metrics['calinski'], 'ro-')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru Analizi')
+    plt.grid(True)
+    
+    # Davies-Bouldin
+    plt.subplot(2, 2, 3)
+    plt.plot(range(2, max_clusters + 1), metrics['davies'], 'go-')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi Analizi')
+    plt.grid(True)
+    
+    # SSE
+    plt.subplot(2, 2, 4)
+    plt.plot(range(2, max_clusters + 1), metrics['sse'], 'mo-')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE Analizi')
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig('visualizations/metrics/detayli_metrik_analizi.png')
+    plt.close()
+    
+    # 3. Gelişmiş Metrik Analizi
+    plt.figure(figsize=(20, 15))
+    
+    # Normalize edilmiş metrikler
+    normalized_metrics = {
+        'silhouette': np.array(metrics['silhouette']) / max(metrics['silhouette']),
+        'calinski': np.array(metrics['calinski']) / max(metrics['calinski']),
+        'davies': 1 - (np.array(metrics['davies']) / max(metrics['davies'])),
+        'sse': 1 - (np.array(metrics['sse']) / max(metrics['sse']))
+    }
+    
+    # Tüm metriklerin ortalaması
+    avg_score = np.mean([normalized_metrics[m] for m in normalized_metrics], axis=0)
+    
+    plt.plot(range(2, max_clusters + 1), avg_score, 'ko-', label='Ortalama Skor')
+    plt.plot(range(2, max_clusters + 1), normalized_metrics['silhouette'], 'bo-', label='Silhouette')
+    plt.plot(range(2, max_clusters + 1), normalized_metrics['calinski'], 'ro-', label='Calinski-Harabasz')
+    plt.plot(range(2, max_clusters + 1), normalized_metrics['davies'], 'go-', label='Davies-Bouldin')
+    plt.plot(range(2, max_clusters + 1), normalized_metrics['sse'], 'mo-', label='SSE')
+    
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Normalize Edilmiş Skor')
+    plt.title('Gelişmiş Metrik Analizi')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/metrics/gelismis_metrik_analizi.png')
+    plt.close()
+    
+    # 4. Performans Metrikleri
+    plt.figure(figsize=(20, 15))
+    
+    # K-means ve Ward karşılaştırması
+    kmeans_metrics = {
+        'silhouette': [],
+        'calinski': [],
+        'davies': [],
+        'sse': []
+    }
+    
+    ward_metrics = {
+        'silhouette': [],
+        'calinski': [],
+        'davies': [],
+        'sse': []
+    }
+    
+    for k in range(2, max_clusters + 1):
+        # K-means
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans_labels = kmeans.fit_predict(X)
+        kmeans_metrics['silhouette'].append(silhouette_score(X, kmeans_labels))
+        kmeans_metrics['calinski'].append(calinski_harabasz_score(X, kmeans_labels))
+        kmeans_metrics['davies'].append(davies_bouldin_score(X, kmeans_labels))
+        kmeans_metrics['sse'].append(kmeans.inertia_)
+        
+        # Ward
+        ward = AgglomerativeClustering(n_clusters=k)
+        ward_labels = ward.fit_predict(X)
+        ward_metrics['silhouette'].append(silhouette_score(X, ward_labels))
+        ward_metrics['calinski'].append(calinski_harabasz_score(X, ward_labels))
+        ward_metrics['davies'].append(davies_bouldin_score(X, ward_labels))
+        ward_metrics['sse'].append(np.sum((X - ward.fit(X).labels_.reshape(-1, 1)) ** 2))
+    
+    # Silhouette
+    plt.subplot(2, 2, 1)
+    plt.plot(range(2, max_clusters + 1), kmeans_metrics['silhouette'], 'b-', label='K-means')
+    plt.plot(range(2, max_clusters + 1), ward_metrics['silhouette'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # Calinski-Harabasz
+    plt.subplot(2, 2, 2)
+    plt.plot(range(2, max_clusters + 1), kmeans_metrics['calinski'], 'b-', label='K-means')
+    plt.plot(range(2, max_clusters + 1), ward_metrics['calinski'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # Davies-Bouldin
+    plt.subplot(2, 2, 3)
+    plt.plot(range(2, max_clusters + 1), kmeans_metrics['davies'], 'b-', label='K-means')
+    plt.plot(range(2, max_clusters + 1), ward_metrics['davies'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # SSE
+    plt.subplot(2, 2, 4)
+    plt.plot(range(2, max_clusters + 1), kmeans_metrics['sse'], 'b-', label='K-means')
+    plt.plot(range(2, max_clusters + 1), ward_metrics['sse'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig('visualizations/metrics/performans_metrikleri.png')
+    plt.close()
+
+def plot_metrics_comparison(metrics_kmeans, metrics_ward, n_clusters_range, save_path='visualizations/metrics/metrics_comparison.png'):
+    """
+    Metrikleri karşılaştırmalı olarak görselleştir
+    """
+    plt.figure(figsize=(15, 10))
+    
+    # Silhouette Skoru
+    plt.subplot(2, 2, 1)
+    plt.plot(n_clusters_range, metrics_kmeans['silhouette'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['silhouette'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # Calinski-Harabasz Skoru
+    plt.subplot(2, 2, 2)
+    plt.plot(n_clusters_range, metrics_kmeans['calinski'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['calinski'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # Davies-Bouldin İndeksi
+    plt.subplot(2, 2, 3)
+    plt.plot(n_clusters_range, metrics_kmeans['davies'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['davies'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    # SSE
+    plt.subplot(2, 2, 4)
+    plt.plot(n_clusters_range, metrics_kmeans['sse'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['sse'], 'r-', label='Ward')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE Karşılaştırması')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_cluster_distribution(labels_kmeans, labels_ward, save_path='visualizations/clustering/cluster_distribution.png'):
+    """
+    Küme dağılımlarını görselleştir
+    """
+    plt.figure(figsize=(15, 6))
+    
+    # K-means küme dağılımı
+    plt.subplot(1, 2, 1)
+    kmeans_counts = pd.Series(labels_kmeans).value_counts().sort_index()
+    plt.bar(kmeans_counts.index, kmeans_counts.values, color='skyblue')
+    plt.xlabel('Küme')
+    plt.ylabel('Algoritma Sayısı')
+    plt.title('K-means Küme Dağılımı')
+    plt.grid(True, axis='y')
+    
+    # Ward küme dağılımı
+    plt.subplot(1, 2, 2)
+    ward_counts = pd.Series(labels_ward).value_counts().sort_index()
+    plt.bar(ward_counts.index, ward_counts.values, color='lightgreen')
+    plt.xlabel('Küme')
+    plt.ylabel('Algoritma Sayısı')
+    plt.title('Ward Küme Dağılımı')
+    plt.grid(True, axis='y')
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_pca_clusters(X_pca, labels_kmeans, labels_ward, save_path='visualizations/clustering/pca_clusters.png'):
+    """
+    PCA ile kümeleme sonuçlarını görselleştir
+    """
+    plt.figure(figsize=(15, 6))
+    
+    # K-means PCA görselleştirmesi
+    plt.subplot(1, 2, 1)
+    scatter = plt.scatter(X_pca[:, 0], X_pca[:, 1], c=labels_kmeans, cmap='tab20', alpha=0.6)
+    plt.colorbar(scatter, label='Küme')
+    plt.xlabel('Birinci Bileşen')
+    plt.ylabel('İkinci Bileşen')
+    plt.title('K-means Kümeleme (PCA)')
+    plt.grid(True)
+    
+    # Ward PCA görselleştirmesi
+    plt.subplot(1, 2, 2)
+    scatter = plt.scatter(X_pca[:, 0], X_pca[:, 1], c=labels_ward, cmap='tab20', alpha=0.6)
+    plt.colorbar(scatter, label='Küme')
+    plt.xlabel('Birinci Bileşen')
+    plt.ylabel('İkinci Bileşen')
+    plt.title('Ward Kümeleme (PCA)')
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_optimal_clusters(metrics_kmeans, metrics_ward, n_clusters_range, save_path='visualizations/metrics/optimal_clusters.png'):
+    """
+    Optimal küme sayısını belirlemek için metrikleri görselleştir
+    """
+    plt.figure(figsize=(15, 10))
+    
+    # Silhouette Skoru
+    plt.subplot(2, 2, 1)
+    plt.plot(n_clusters_range, metrics_kmeans['silhouette'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['silhouette'], 'r-', label='Ward')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru - Optimal Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    
+    # Calinski-Harabasz Skoru
+    plt.subplot(2, 2, 2)
+    plt.plot(n_clusters_range, metrics_kmeans['calinski'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['calinski'], 'r-', label='Ward')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru - Optimal Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    
+    # Davies-Bouldin İndeksi
+    plt.subplot(2, 2, 3)
+    plt.plot(n_clusters_range, metrics_kmeans['davies'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['davies'], 'r-', label='Ward')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi - Optimal Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    
+    # SSE
+    plt.subplot(2, 2, 4)
+    plt.plot(n_clusters_range, metrics_kmeans['sse'], 'b-', label='K-means')
+    plt.plot(n_clusters_range, metrics_ward['sse'], 'r-', label='Ward')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE - Optimal Küme Sayısı')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_correlation_heatmap(df, save_path='visualizations/analysis/correlation_heatmap.png'):
+    """
+    Sayısal özellikler arasındaki korelasyonu görselleştir
+    """
+    # Sayısal özellikleri seç ve dönüştür
+    numeric_df = df.copy()
+    
+    # Karmaşıklık düzeyini sayısal değere dönüştür
+    numeric_df['Karmaşıklık Düzeyi'] = numeric_df['Karmaşıklık Düzeyi'].str.replace('comp', '').astype(int)
+    
+    # Popülerliği sayısal değere dönüştür
+    numeric_df['Popülerlik'] = numeric_df['Popülerlik'].str.replace('p', '').astype(int)
+    
+    # Donanım gereksinimlerini sayısal değere dönüştür
+    def convert_hardware(x):
+        if isinstance(x, str):
+            if '-' in x:
+                start, end = map(float, x.split('-'))
+                return (start + end) / 2
+            return float(x)
+        return x
+    
+    numeric_df['Donanım Gerkesinimleri'] = numeric_df['Donanım Gerkesinimleri'].apply(convert_hardware)
+    
+    # Sayısal sütunları seç
+    numeric_cols = ['Karmaşıklık Düzeyi', 'Popülerlik', 'Donanım Gerkesinimleri']
+    numeric_df = numeric_df[numeric_cols]
+    
+    # Korelasyon matrisini hesapla
+    corr_matrix = numeric_df.corr()
+    
+    # Isı haritası oluştur
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0, fmt='.2f')
+    plt.title('Sayısal Özellikler Arasındaki Korelasyon')
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_dataset_analysis(df, save_path='visualizations/analysis/dataset_analysis.png'):
+    """
+    Veri seti analizini görselleştir
+    """
+    plt.figure(figsize=(15, 10))
+    
+    # Kategorik özelliklerin dağılımı
+    plt.subplot(2, 2, 1)
+    df['Öğrenme Türü'].value_counts().plot(kind='bar', color='skyblue')
+    plt.title('Öğrenme Türü Dağılımı')
+    plt.xticks(rotation=45)
+    plt.grid(True, axis='y')
+    
+    plt.subplot(2, 2, 2)
+    df['Model Yapısı'].value_counts().plot(kind='bar', color='lightgreen')
+    plt.title('Model Yapısı Dağılımı')
+    plt.xticks(rotation=45)
+    plt.grid(True, axis='y')
+    
+    plt.subplot(2, 2, 3)
+    df['Katman Tipi'].value_counts().plot(kind='bar', color='salmon')
+    plt.title('Katman Tipi Dağılımı')
+    plt.xticks(rotation=45)
+    plt.grid(True, axis='y')
+    
+    plt.subplot(2, 2, 4)
+    df['Veri Tipi'].value_counts().plot(kind='bar', color='orange')
+    plt.title('Veri Tipi Dağılımı')
+    plt.xticks(rotation=45)
+    plt.grid(True, axis='y')
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_numeric_features_distribution(df, save_path='visualizations/analysis/numeric_features_distribution.png'):
+    """
+    Sayısal özelliklerin dağılımını görselleştir
+    """
+    # Sayısal özellikleri dönüştür
+    numeric_df = df.copy()
+    
+    # Karmaşıklık düzeyini sayısal değere dönüştür
+    numeric_df['Karmaşıklık Düzeyi'] = numeric_df['Karmaşıklık Düzeyi'].str.replace('comp', '').astype(int)
+    
+    # Popülerliği sayısal değere dönüştür
+    numeric_df['Popülerlik'] = numeric_df['Popülerlik'].str.replace('p', '').astype(int)
+    
+    # Donanım gereksinimlerini sayısal değere dönüştür
+    def convert_hardware(x):
+        if isinstance(x, str):
+            if '-' in x:
+                start, end = map(float, x.split('-'))
+                return (start + end) / 2
+            return float(x)
+        return x
+    
+    numeric_df['Donanım Gerkesinimleri'] = numeric_df['Donanım Gerkesinimleri'].apply(convert_hardware)
+    
+    plt.figure(figsize=(15, 5))
+    
+    # Karmaşıklık Düzeyi
+    plt.subplot(1, 3, 1)
+    sns.histplot(data=numeric_df, x='Karmaşıklık Düzeyi', bins=10, color='skyblue')
+    plt.title('Karmaşıklık Düzeyi Dağılımı')
+    plt.grid(True)
+    
+    # Popülerlik
+    plt.subplot(1, 3, 2)
+    sns.histplot(data=numeric_df, x='Popülerlik', bins=10, color='lightgreen')
+    plt.title('Popülerlik Dağılımı')
+    plt.grid(True)
+    
+    # Donanım Gereksinimleri
+    plt.subplot(1, 3, 3)
+    sns.histplot(data=numeric_df, x='Donanım Gerkesinimleri', bins=10, color='salmon')
+    plt.title('Donanım Gereksinimleri Dağılımı')
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_model_performance_metrics(metrics_kmeans, metrics_ward, n_clusters_range, save_path='visualizations/metrics/model_performance.png'):
+    """
+    Model performans metriklerini görselleştir
+    """
+    plt.figure(figsize=(15, 10))
+    
+    # Silhouette Skoru
+    plt.subplot(2, 2, 1)
+    plt.plot(n_clusters_range, metrics_kmeans['silhouette'], 'b-', label='K-means', marker='o')
+    plt.plot(n_clusters_range, metrics_ward['silhouette'], 'r-', label='Ward', marker='s')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Silhouette Skoru')
+    plt.title('Silhouette Skoru - Model Performansı')
+    plt.legend()
+    plt.grid(True)
+    
+    # Calinski-Harabasz Skoru
+    plt.subplot(2, 2, 2)
+    plt.plot(n_clusters_range, metrics_kmeans['calinski'], 'b-', label='K-means', marker='o')
+    plt.plot(n_clusters_range, metrics_ward['calinski'], 'r-', label='Ward', marker='s')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Calinski-Harabasz Skoru')
+    plt.title('Calinski-Harabasz Skoru - Model Performansı')
+    plt.legend()
+    plt.grid(True)
+    
+    # Davies-Bouldin İndeksi
+    plt.subplot(2, 2, 3)
+    plt.plot(n_clusters_range, metrics_kmeans['davies'], 'b-', label='K-means', marker='o')
+    plt.plot(n_clusters_range, metrics_ward['davies'], 'r-', label='Ward', marker='s')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('Davies-Bouldin İndeksi')
+    plt.title('Davies-Bouldin İndeksi - Model Performansı')
+    plt.legend()
+    plt.grid(True)
+    
+    # SSE
+    plt.subplot(2, 2, 4)
+    plt.plot(n_clusters_range, metrics_kmeans['sse'], 'b-', label='K-means', marker='o')
+    plt.plot(n_clusters_range, metrics_ward['sse'], 'r-', label='Ward', marker='s')
+    plt.axvline(x=27, color='g', linestyle='--', label='Optimal Küme Sayısı')
+    plt.xlabel('Küme Sayısı')
+    plt.ylabel('SSE')
+    plt.title('SSE - Model Performansı')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # 27 küme için detaylı metrik tablosu
+    print("\n27 Küme için Model Performans Metrikleri:")
+    print("\nK-means Metrikleri:")
+    print(f"Silhouette Skoru: {metrics_kmeans['silhouette'][7]:.4f}")
+    print(f"Calinski-Harabasz Skoru: {metrics_kmeans['calinski'][7]:.4f}")
+    print(f"Davies-Bouldin İndeksi: {metrics_kmeans['davies'][7]:.4f}")
+    print(f"SSE: {metrics_kmeans['sse'][7]:.4f}")
+    
+    print("\nWard Metrikleri:")
+    print(f"Silhouette Skoru: {metrics_ward['silhouette'][7]:.4f}")
+    print(f"Calinski-Harabasz Skoru: {metrics_ward['calinski'][7]:.4f}")
+    print(f"Davies-Bouldin İndeksi: {metrics_ward['davies'][7]:.4f}")
+    print(f"SSE: {metrics_ward['sse'][7]:.4f}")
+
+def check_cluster_separation(features, labels):
+    """
+    Küme içi ve küme arası mesafeleri hesapla
+    """
+    intra_cluster_dist = []
+    inter_cluster_dist = []
+    unique_labels = np.unique(labels)
+    
+    for i in unique_labels:
+        cluster_points = features[labels == i]
+        cluster_center = np.mean(cluster_points, axis=0)
+        
+        # Küme içi mesafe
+        intra_dist = np.mean(np.linalg.norm(cluster_points - cluster_center, axis=1))
+        intra_cluster_dist.append(intra_dist)
+        
+        # Diğer kümelerle arasındaki mesafe
+        for j in unique_labels:
+            if i != j:
+                other_cluster_points = features[labels == j]
+                other_center = np.mean(other_cluster_points, axis=0)
+                inter_dist = np.linalg.norm(cluster_center - other_center)
+                inter_cluster_dist.append(inter_dist)
+    
+    return np.mean(intra_cluster_dist), np.mean(inter_cluster_dist)
+
+def analyze_cluster_quality(features, labels_kmeans, labels_ward):
+    """
+    Küme kalitesini analiz et ve raporla
+    """
+    print("\nKüme Kalitesi Analizi:")
+    
+    # K-means için analiz
+    intra_kmeans, inter_kmeans = check_cluster_separation(features, labels_kmeans)
+    print("\nK-means Algoritması:")
+    print(f"Ortalama Küme İçi Mesafe: {intra_kmeans:.4f}")
+    print(f"Ortalama Küme Arası Mesafe: {inter_kmeans:.4f}")
+    print(f"Mesafe Oranı (İç/Arası): {intra_kmeans/inter_kmeans:.4f}")
+    
+    # Ward için analiz
+    intra_ward, inter_ward = check_cluster_separation(features, labels_ward)
+    print("\nWard Algoritması:")
+    print(f"Ortalama Küme İçi Mesafe: {intra_ward:.4f}")
+    print(f"Ortalama Küme Arası Mesafe: {inter_ward:.4f}")
+    print(f"Mesafe Oranı (İç/Arası): {intra_ward/inter_ward:.4f}")
+    
+    # Kalite değerlendirmesi
+    print("\nKalite Değerlendirmesi:")
+    if intra_kmeans/inter_kmeans < 0.5:
+        print("K-means: İyi küme ayrımı (Küme içi mesafe, küme arası mesafenin yarısından az)")
+    else:
+        print("K-means: Küme ayrımı iyileştirilmeli")
+        
+    if intra_ward/inter_ward < 0.5:
+        print("Ward: İyi küme ayrımı (Küme içi mesafe, küme arası mesafenin yarısından az)")
+    else:
+        print("Ward: Küme ayrımı iyileştirilmeli")
+
+def main():
     print("Veri seti okunuyor...")
-    df = pd.read_csv('Veri_seti.csv')
+    # Veri setini oku ve sütun isimlerini kontrol et
+    df = pd.read_csv('algorithms/Veri_seti.csv', encoding='utf-8')
+    print("\nSütun isimleri:", df.columns.tolist())
+    
+    # Veri analizi görselleştirmeleri
+    print("\nVeri analizi görselleştirmeleri oluşturuluyor...")
+    plot_correlation_heatmap(df)
+    plot_dataset_analysis(df)
+    plot_numeric_features_distribution(df)
     
     # Veri ön işleme
-    X = preprocess_data(df)
+    print("\nVeri ön işleme başlatılıyor...")
+    print("Kategorik özellikler işleniyor...")
+    categorical_features = preprocess_categorical_features(df)
     
-    # Veriyi ölçeklendir
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    print("Sayısal özellikler işleniyor...")
+    numerical_features = preprocess_numerical_features(df)
+    
+    print("Kullanım alanları işleniyor...")
+    usage_features = preprocess_usage_areas(df)
+    
+    print("Özellik seçimi yapılıyor...")
+    features = pd.concat([categorical_features, numerical_features, usage_features], axis=1)
+    
+    print("Veri ön işleme tamamlandı!")
     
     # PCA uygula
-    pca = PCA(n_components=0.90)
-    X_pca = pca.fit_transform(X_scaled)
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(features)
     
-    # Dirsek yöntemi grafiğini oluştur
-    visualize_elbow_method(X_pca)
+    # Farklı küme sayıları için metrikleri hesapla
+    n_clusters_range = range(20, 31)
+    metrics_kmeans = {'silhouette': [], 'calinski': [], 'davies': [], 'sse': []}
+    metrics_ward = {'silhouette': [], 'calinski': [], 'davies': [], 'sse': []}
     
-    # Optimal küme sayısını bul
-    optimal_k, metrics_history = find_optimal_clusters(X_pca)
+    print("\nFarklı küme sayıları için metrikler hesaplanıyor...")
+    for n_clusters in n_clusters_range:
+        print(f"\nKüme sayısı: {n_clusters}")
+        
+        # K-means
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        labels_kmeans = kmeans.fit_predict(features)
+        
+        # Ward
+        ward = AgglomerativeClustering(n_clusters=n_clusters)
+        labels_ward = ward.fit_predict(features)
+        
+        # Metrikleri hesapla
+        metrics_kmeans['silhouette'].append(silhouette_score(features, labels_kmeans))
+        metrics_kmeans['calinski'].append(calinski_harabasz_score(features, labels_kmeans))
+        metrics_kmeans['davies'].append(davies_bouldin_score(features, labels_kmeans))
+        metrics_kmeans['sse'].append(kmeans.inertia_)
+        
+        metrics_ward['silhouette'].append(silhouette_score(features, labels_ward))
+        metrics_ward['calinski'].append(calinski_harabasz_score(features, labels_ward))
+        metrics_ward['davies'].append(davies_bouldin_score(features, labels_ward))
+        metrics_ward['sse'].append(ward.n_clusters_)
     
-    # Algoritma parametrelerini optimize et
-    kmeans_params = optimize_algorithm_parameters(X_pca, 'kmeans')
-    ward_params = optimize_algorithm_parameters(X_pca, 'ward')
+    # 27 küme için son kümeleme
+    print("\n27 küme için son kümeleme yapılıyor...")
+    kmeans = KMeans(n_clusters=27, random_state=42)
+    labels_kmeans = kmeans.fit_predict(features)
     
-    # Modelleri eğit
-    kmeans = KMeans(**kmeans_params, random_state=42)
-    ward = AgglomerativeClustering(**ward_params)
+    ward = AgglomerativeClustering(n_clusters=27)
+    labels_ward = ward.fit_predict(features)
     
-    kmeans_labels = kmeans.fit_predict(X_pca)
-    ward_labels = ward.fit_predict(X_pca)
+    # Küme kalitesi analizi
+    analyze_cluster_quality(features, labels_kmeans, labels_ward)
     
-    labels = {
-        'kmeans': kmeans_labels,
-        'ward': ward_labels
-    }
+    # Kümeleme görselleştirmeleri
+    print("\nKümeleme görselleştirmeleri oluşturuluyor...")
+    plot_metrics_comparison(metrics_kmeans, metrics_ward, n_clusters_range)
+    plot_cluster_distribution(labels_kmeans, labels_ward)
+    plot_pca_clusters(X_pca, labels_kmeans, labels_ward)
+    plot_optimal_clusters(metrics_kmeans, metrics_ward, n_clusters_range)
+    plot_model_performance_metrics(metrics_kmeans, metrics_ward, n_clusters_range)
     
-    # Metrikleri hesapla ve açıkla
-    print("\n=== K-MEANS ALGORİTMASI METRİKLERİ ===")
-    kmeans_metrics = {
-        'silhouette': silhouette_score(X_pca, kmeans_labels),
-        'calinski_harabasz': calinski_harabasz_score(X_pca, kmeans_labels),
-        'davies_bouldin': davies_bouldin_score(X_pca, kmeans_labels),
-        'SSE': calculate_sse(X_pca, kmeans_labels)
-    }
-    explain_metrics(kmeans_metrics, 'K-means')
-    
-    print("\n=== WARD ALGORİTMASI METRİKLERİ ===")
-    ward_metrics = {
-        'silhouette': silhouette_score(X_pca, ward_labels),
-        'calinski_harabasz': calinski_harabasz_score(X_pca, ward_labels),
-        'davies_bouldin': davies_bouldin_score(X_pca, ward_labels),
-        'SSE': calculate_sse(X_pca, ward_labels)
-    }
-    explain_metrics(ward_metrics, 'Ward')
-    
-    # Detaylı metrik raporları oluştur
-    kmeans_report = generate_detailed_metrics_report(kmeans_metrics, 'K-means')
-    ward_report = generate_detailed_metrics_report(ward_metrics, 'Ward')
-    
-    # Raporları JSON dosyalarına kaydet
-    with open('reports/kmeans_metrik_raporu.json', 'w', encoding='utf-8') as f:
-        json.dump(kmeans_report, f, ensure_ascii=False, indent=4)
-    
-    with open('reports/ward_metrik_raporu.json', 'w', encoding='utf-8') as f:
-        json.dump(ward_report, f, ensure_ascii=False, indent=4)
-    
-    # Sonuçları görselleştir
-    visualize_results(X_pca, kmeans_labels, ward_labels, optimal_k)
-    
-    # Küme içeriklerini analiz et
-    analyze_cluster_contents(df, kmeans_labels, "K-means")
-    analyze_cluster_contents(df, ward_labels, "Ward")
+    # 27 küme için son görselleştirmeleri yap
+    print("\n27 küme için son görselleştirmeler yapılıyor...")
+    visualize_all_metrics(X_pca)
+    visualize_dendrogram(X_pca)
     
     # Modelleri kaydet
+    print("\nModeller kaydediliyor...")
+    scaler = StandardScaler()
+    scaler.fit(features)
     save_models(kmeans, ward, scaler, pca)
     
-    print("\nAnaliz tamamlandı! Sonuçlar kaydedildi.")
+    print("\nAnaliz tamamlandı!")
 
 if __name__ == "__main__":
     main() 
