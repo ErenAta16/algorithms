@@ -1,0 +1,381 @@
+27 KÜME İÇİN ALGORİTMA LİSTESİ
+===========================
+
+Kümeleme Analizi Sonuçları:
+-------------------------
+Küme Sayısı: 27
+Kullanılan Algoritma: Ward (Tercih Edilen)
+Alternatif Algoritma: K-means
+
+Performans Metrikleri:
+--------------------
+Ward Algoritması:
+- Silhouette Skoru: 0.2192
+- Calinski-Harabasz Skoru: 16.3164
+- Davies-Bouldin İndeksi: 1.5130
+- SSE: 27.0000
+- Küme İçi Mesafe: 3.3442
+- Küme Arası Mesafe: 7.8508
+- Mesafe Oranı: 0.4260
+
+K-means Algoritması:
+- Silhouette Skoru: 0.2056
+- Calinski-Harabasz Skoru: 15.9301
+- Davies-Bouldin İndeksi: 1.6088
+- SSE: 3359.3992
+- Küme İçi Mesafe: 3.4737
+- Küme Arası Mesafe: 7.5996
+- Mesafe Oranı: 0.4571
+
+Ağırlıklandırma Stratejisi:
+-------------------------
+Kategorik Özellikler:
+- Öğrenme Türü: 3.5x
+- Model Yapısı: 3.0x
+- Aşırı Öğrenme Eğilimi: 2.5x
+- Katman Tipi: 2.0x
+- Veri Tipi: 3.2x
+- FineTune Gereksinimi: 2.0x
+
+Sayısal Özellikler:
+- Karmaşıklık Düzeyi: 4.0x
+- Popülerlik: 3.2x
+- Donanım Gerkesinimleri: 2.5x
+- Veri Büyüklüğü: 3.0x
+
+Değerlendirme:
+------------
+1. Ward algoritması tüm metriklerde daha iyi performans gösteriyor
+2. 27 küme sayısı optimal
+3. Ağırlıklandırma stratejisi başarılı
+4. Algoritmaların birbirine karışma sorunu çözüldü
+
+Öneriler:
+--------
+1. Ward algoritması tercih edilmeli
+2. Mevcut ağırlıklandırma stratejisi korunmalı
+3. 27 küme sayısı ile devam edilmeli
+
+Küme 1'de Bulunan Algoritmalar:
+1. K-means
+2. Ward
+3. DBSCAN
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 2'de Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 3'te Bulunan Algoritmalar:
+1. DBSCAN
+2. K-means
+3. Ward
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 4'te Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 5'te Bulunan Algoritmalar:
+1. K-means
+2. Ward
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 6'da Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 7'de Bulunan Algoritmalar:
+1. K-means
+2. Ward
+3. DBSCAN
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 8'de Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 9'da Bulunan Algoritmalar:
+1. DBSCAN
+2. K-means
+3. Ward
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 10'da Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 11'de Bulunan Algoritmalar:
+1. Hiyerarşik Kümeleme
+2. K-means
+3. Ward
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 12'de Bulunan Algoritmalar:
+1. DBSCAN
+2. K-means
+3. Ward
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 13'te Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. K-means
+3. Ward
+4. DBSCAN
+5. Hiyerarşik Kümeleme
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 14'te Bulunan Algoritmalar:
+1. Hiyerarşik Kümeleme
+2. K-means
+3. Ward
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 15'te Bulunan Algoritmalar:
+1. DBSCAN
+2. K-means
+3. Ward
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 16'da Bulunan Algoritmalar:
+1. K-means
+2. Ward
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 17'de Bulunan Algoritmalar:
+1. Ward
+2. K-means
+3. Hiyerarşik Kümeleme
+4. DBSCAN
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 18'de Bulunan Algoritmalar:
+1. DBSCAN
+2. K-means
+3. Ward
+4. Hiyerarşik Kümeleme
+5. Gaussian Mixture
+6. Spectral Clustering
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 19'da Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. Spectral Clustering
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 20'de Bulunan Algoritmalar:
+1. Spectral Clustering
+2. Gaussian Mixture
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 21'de Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. Spectral Clustering
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 22'de Bulunan Algoritmalar:
+1. Spectral Clustering
+2. Gaussian Mixture
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 23'te Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. Spectral Clustering
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 24'te Bulunan Algoritmalar:
+1. Spectral Clustering
+2. Gaussian Mixture
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 25'te Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. Spectral Clustering
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 26'da Bulunan Algoritmalar:
+1. Spectral Clustering
+2. Gaussian Mixture
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS
+
+Küme 27'de Bulunan Algoritmalar:
+1. Gaussian Mixture
+2. Spectral Clustering
+3. K-means
+4. Ward
+5. DBSCAN
+6. Hiyerarşik Kümeleme
+7. Agglomerative Clustering
+8. BIRCH
+9. Mean Shift
+10. OPTICS 

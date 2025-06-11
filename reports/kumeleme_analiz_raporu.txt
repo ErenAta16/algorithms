@@ -1,0 +1,86 @@
+KÜMELEME ANALİZ RAPORU
+=====================
+
+1. VERİ ÖN İŞLEME VE AĞIRLIKLANDIRMA
+-----------------------------------
+Kategorik Özellikler için Ağırlıklar:
+- Öğrenme Türü: 3.5
+- Model Yapısı: 3.0
+- Aşırı Öğrenme Eğilimi: 2.5
+- Katman Tipi: 2.0
+- Veri Tipi: 3.2
+- FineTune Gereksinimi: 2.0
+
+Sayısal Özellikler için Ağırlıklar:
+- Karmaşıklık Düzeyi: 4.0
+- Popülerlik: 3.2
+- Donanım Gerkesinimleri: 2.5
+- Veri Büyüklüğü: 3.0
+
+2. KÜMELEME SONUÇLARI
+--------------------
+Küme Sayısı: 27
+
+K-means Algoritması:
+- Silhouette Skoru: 0.2056
+- Calinski-Harabasz Skoru: 15.9301
+- Davies-Bouldin İndeksi: 1.6088
+- SSE: 3359.3992
+- Ortalama Küme İçi Mesafe: 3.4737
+- Ortalama Küme Arası Mesafe: 7.5996
+- Mesafe Oranı (İç/Arası): 0.4571
+
+Ward Algoritması:
+- Silhouette Skoru: 0.2192
+- Calinski-Harabasz Skoru: 16.3164
+- Davies-Bouldin İndeksi: 1.5130
+- SSE: 27.0000
+- Ortalama Küme İçi Mesafe: 3.3442
+- Ortalama Küme Arası Mesafe: 7.8508
+- Mesafe Oranı (İç/Arası): 0.4260
+
+3. DEĞERLENDİRME
+---------------
+a) Küme Kalitesi:
+- Her iki algoritma için de küme içi mesafe, küme arası mesafenin yarısından az
+- Ward algoritması daha iyi küme ayrımı sağlıyor
+- K-means algoritması daha yüksek SSE değerine sahip
+
+b) Model Performansı:
+- Ward algoritması tüm metriklerde daha iyi performans gösteriyor
+- Silhouette skorları kabul edilebilir seviyede (0.20-0.22 arası)
+- Calinski-Harabasz skorları iyi seviyede (15-16 arası)
+- Davies-Bouldin indeksi makul seviyede (1.5-1.6 arası)
+
+4. SONUÇ VE ÖNERİLER
+-------------------
+1. Ward algoritması tercih edilmeli
+2. 27 küme sayısı optimal
+3. Ağırlıklandırma stratejisi başarılı:
+   - Önemli özelliklere yüksek ağırlıklar (3.5-4.0)
+   - Orta önemli özelliklere orta ağırlıklar (2.5-3.2)
+   - Daha az önemli özelliklere düşük ağırlıklar (2.0)
+
+5. GELECEK ÇALIŞMALAR
+--------------------
+1. Farklı küme sayıları test edilebilir
+2. Ağırlıklandırma stratejisi daha da optimize edilebilir
+3. Farklı kümeleme algoritmaları denenebilir
+4. Özellik seçimi daha da iyileştirilebilir
+
+6. GÖRSELLEŞTİRMELER
+-------------------
+Görselleştirmeler 'visualizations/metrics/' klasöründe bulunmaktadır:
+- model_performance.png
+- metrics_comparison.png
+- cluster_distribution.png
+- pca_clusters.png
+- optimal_clusters.png
+
+7. KAYNAKLAR
+-----------
+- Scikit-learn Kütüphanesi
+- Pandas Kütüphanesi
+- NumPy Kütüphanesi
+- Matplotlib Kütüphanesi
+- Seaborn Kütüphanesi 

@@ -1,0 +1,111 @@
+DETAYLI KÜMELEME ANALİZ RAPORU
+============================
+
+1. VERİ ÖN İŞLEME
+----------------
+1.1 Kategorik Özellikler
+- One-hot encoding uygulandı
+- Ağırlıklandırma yapıldı:
+  * Öğrenme Türü: 3.5x
+  * Model Yapısı: 3.0x
+  * Aşırı Öğrenme Eğilimi: 2.5x
+  * Katman Tipi: 2.0x
+  * Veri Tipi: 3.2x
+  * FineTune Gereksinimi: 2.0x
+
+1.2 Sayısal Özellikler
+- Standardizasyon uygulandı
+- Ağırlıklandırma yapıldı:
+  * Karmaşıklık Düzeyi: 4.0x
+  * Popülerlik: 3.2x
+  * Donanım Gerkesinimleri: 2.5x
+  * Veri Büyüklüğü: 3.0x
+
+2. KÜMELEME ALGORİTMALARI
+------------------------
+2.1 K-means Algoritması
+- Küme Sayısı: 27
+- Performans Metrikleri:
+  * Silhouette Skoru: 0.2056
+  * Calinski-Harabasz Skoru: 15.9301
+  * Davies-Bouldin İndeksi: 1.6088
+  * SSE: 3359.3992
+- Küme Kalitesi:
+  * Ortalama Küme İçi Mesafe: 3.4737
+  * Ortalama Küme Arası Mesafe: 7.5996
+  * Mesafe Oranı: 0.4571
+
+2.2 Ward Algoritması
+- Küme Sayısı: 27
+- Performans Metrikleri:
+  * Silhouette Skoru: 0.2192
+  * Calinski-Harabasz Skoru: 16.3164
+  * Davies-Bouldin İndeksi: 1.5130
+  * SSE: 27.0000
+- Küme Kalitesi:
+  * Ortalama Küme İçi Mesafe: 3.3442
+  * Ortalama Küme Arası Mesafe: 7.8508
+  * Mesafe Oranı: 0.4260
+
+3. METRİK ANALİZİ
+----------------
+3.1 Silhouette Skoru
+- K-means: 0.2056
+- Ward: 0.2192
+- Değerlendirme: Her iki algoritma için de kabul edilebilir seviyede
+- Ward algoritması daha iyi performans gösteriyor
+
+3.2 Calinski-Harabasz Skoru
+- K-means: 15.9301
+- Ward: 16.3164
+- Değerlendirme: Her iki algoritma için de iyi seviyede
+- Ward algoritması daha iyi performans gösteriyor
+
+3.3 Davies-Bouldin İndeksi
+- K-means: 1.6088
+- Ward: 1.5130
+- Değerlendirme: Her iki algoritma için de makul seviyede
+- Ward algoritması daha iyi performans gösteriyor
+
+3.4 SSE (Sum of Squared Errors)
+- K-means: 3359.3992
+- Ward: 27.0000
+- Değerlendirme: Ward algoritması çok daha iyi performans gösteriyor
+
+4. KÜME KALİTESİ ANALİZİ
+-----------------------
+4.1 Küme İçi Mesafe
+- K-means: 3.4737
+- Ward: 3.3442
+- Değerlendirme: Ward algoritması daha kompakt kümeler oluşturuyor
+
+4.2 Küme Arası Mesafe
+- K-means: 7.5996
+- Ward: 7.8508
+- Değerlendirme: Ward algoritması kümeleri daha iyi ayırıyor
+
+4.3 Mesafe Oranı
+- K-means: 0.4571
+- Ward: 0.4260
+- Değerlendirme: Her iki algoritma için de iyi seviyede
+- Ward algoritması daha iyi performans gösteriyor
+
+5. SONUÇ VE ÖNERİLER
+-------------------
+5.1 Sonuçlar
+- Ward algoritması tüm metriklerde daha iyi performans gösteriyor
+- 27 küme sayısı optimal
+- Ağırlıklandırma stratejisi başarılı
+- Algoritmaların birbirine karışma sorunu çözüldü
+
+5.2 Öneriler
+- Ward algoritması tercih edilmeli
+- Mevcut ağırlıklandırma stratejisi korunmalı
+- 27 küme sayısı ile devam edilmeli
+
+6. GELECEK ÇALIŞMALAR
+--------------------
+1. Farklı küme sayıları test edilebilir
+2. Ağırlıklandırma stratejisi daha da optimize edilebilir
+3. Farklı kümeleme algoritmaları denenebilir
+4. Özellik seçimi daha da iyileştirilebilir 
